@@ -9,6 +9,11 @@ import Foundation
 import os // logger
 import AuthenticationServices
 
+/**
+ Resources:
+ - https://developer.apple.com/videos/play/wwdc2021/10106/
+ - https://developer.apple.com/videos/play/wwdc2022/10092/
+ */
 
 /**
  Related setup for SnapAuth:
@@ -34,6 +39,8 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     private let logger: Logger
 
     public var delegate: SnapAuthDelegate?
+
+    public var presentationContextProvider: ASWebAuthenticationPresentationContextProviding?
 
 
     private var anchor: ASPresentationAnchor?
@@ -61,9 +68,26 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     #if os(iOS)
     @available(iOS 16.0, *)
     public func handleAutofill(anchor: ASPresentationAnchor) async {
-        logger.debug("AF start")
         self.anchor = anchor
 
+        await handleAutofill(presentationContextProvider: self)
+    }
+
+    /**
+     Reinitializes internal state before starting a request.
+     */
+    private func reset() -> Void {
+//        self.anchor = nil
+        self.authenticatingUser = nil
+    }
+
+    /**
+     TODO: figure out how to cancel this request when modal begins
+     */
+    @available(iOS 16.0, *)
+    public func handleAutofill(presentationContextProvider: ASAuthorizationControllerPresentationContextProviding) async {
+        reset()
+        logger.debug("AF start")
         let parsed = await makeRequest(
             path: "/auth/createOptions",
             body: ["ignore":"me"],
@@ -74,20 +98,23 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
             relyingPartyIdentifier: parsed.result.publicKey.rpId)
         let request = provider.createCredentialAssertionRequest(challenge: challenge)
 
+
         let controller = ASAuthorizationController(authorizationRequests: [request])
         controller.delegate = self
-        controller.presentationContextProvider = self
+        controller.presentationContextProvider = presentationContextProvider
         logger.debug("AF perform")
         controller.performAutoFillAssistedRequests()
-
     }
     #endif
 
+    private var authenticatingUser: SAUser?
     /**
      TODO: this should take a new UserInfo
      */
     public func startAuth(_ user: SAUser, anchor: ASPresentationAnchor, providers: Providers = .all) async {
+        reset()
         self.anchor = anchor
+        self.authenticatingUser = user
 
         let body: [String: [String: String]]
         switch user {
@@ -162,10 +189,11 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         request.setValue(basic, forHTTPHeaderField: "Authorization")
         let json = try! JSONEncoder().encode(body)
         request.httpBody = json
+        logger.debug("--> \(String(decoding: json, as: UTF8.self))")
 
         let (data, response) = try! await URLSession.shared.data(for: request)
         let jsonString = String(data: data, encoding: .utf8)
-        logger.debug("\(jsonString ?? "not a string")")
+        logger.debug("<-- \(jsonString ?? "not a string")")
 
         guard let parsed = try? JSONDecoder().decode(SAResponse<T>.self, from: data) else {
             logger.error("nope")
@@ -185,32 +213,43 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 @available(macOS 12.0, iOS 15.0, *)
 extension SnapAuth: ASAuthorizationControllerDelegate {
 
-    public func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+    public func authorizationController(
+        controller: ASAuthorizationController,
+        didCompleteWithError error: Error
+    ) {
         logger.error("ASACD fail: \(error)")
         // (lldb) po error
         // Error Domain=com.apple.AuthenticationServices.AuthorizationError Code=1004 "Application with identifier V46X94865S.app.snapauth.PassKeyExample is not associated with domain demo.snapauth.app" UserInfo={NSLocalizedFailureReason=Application with identifier V46X94865S.app.snapauth.PassKeyExample is not associated with domain demo.snapauth.app}
         // (lldb) po error.localizedDescription
         // "The operation couldn’t be completed. Application with identifier V46X94865S.app.snapauth.PassKeyExample is not associated with domain demo.snapauth.app"
 
-        
-
         Task {
             // Failure reason, etc, etc
             await delegate?.snapAuth(didAuthenticate: .failure)
         }
     }
-    public func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
+
+    public func authorizationController(
+        controller: ASAuthorizationController,
+        didCompleteWithAuthorization authorization: ASAuthorization
+    ) {
         logger.debug("ASACD did complete")
 
 
         switch authorization.credential {
         case is ASAuthorizationSecurityKeyPublicKeyCredentialAssertion:
-            logger.debug("switch hardware key")
+            logger.debug("switch hardware key assn")
         case is ASAuthorizationPlatformPublicKeyCredentialAssertion:
-            logger.debug("switch passkey")
+            logger.debug("switch passkey assn")
+        case is ASAuthorizationPlatformPublicKeyCredentialRegistration:
+            logger.debug("switch passkey registration")
+        case is ASAuthorizationSecurityKeyPublicKeyCredentialAssertion:
+            logger.debug("switch hardware key registration")
         default:
             logger.debug("uhh")
         }
+
+        /// TODO: registration support in here as well - ASAuthorization uses the same callback
 
         guard let assertion = authorization.credential as? ASAuthorizationPublicKeyCredentialAssertion else {
             return
@@ -234,7 +273,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         let cCrd = SAProcessAuthRequest.SACredential(
             rawId: credentialId,
             response: response)
-        let body = SAProcessAuthRequest(credential: cCrd)
+        let body = SAProcessAuthRequest(credential: cCrd, user: authenticatingUser)
         logger.debug("made a body")
 //        logger.debug("user id \(assertion.userID.base64EncodedString())")
         Task {
@@ -250,6 +289,8 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         }
     }
 }
+
+
 @available(macOS 12.0, iOS 15.0, *)
 extension SnapAuth: ASAuthorizationControllerPresentationContextProviding {
     public func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
@@ -269,14 +310,32 @@ extension SnapAuth: ASAuthorizationControllerPresentationContextProviding {
 }
 
 public enum SAUser {
-    // TODO: codable here to simplify generation request?
-//    case anonymous
     case id(String)
     case handle(String)
 }
+/**
+ Encode to either `{"id": id}` or `{"handle": handle}`
+ */
+extension SAUser: Encodable {
+    enum CodingKeys: String, CodingKey {
+         case id
+         case handle
+     }
+
+     public func encode(to encoder: Encoder) throws {
+         var container = encoder.container(keyedBy: CodingKeys.self)
+
+         switch self {
+         case .id(let value):
+             try container.encode(value, forKey: .id)
+         case .handle(let value):
+             try container.encode(value, forKey: .handle)
+         }
+     }
+}
 
 // just decodable? Also, build this on top of Result<S,E>?
-struct SAResponse<T>: Codable where T: Codable {
+struct SAResponse<T>: Decodable where T: Decodable {
     let result: T
 }
 struct SACreateAuthOptions: Codable {
@@ -297,14 +356,30 @@ struct SACreateAuthOptions: Codable {
     }
 }
 
-public struct SAAuthData: Codable {
+public struct SAAuthData {
     public let token: String
-    // expiresAt
+    public let expiresAt: Date
+}
+extension SAAuthData: Decodable {
+    // Unixtime needs custom decoding
+    enum CodingKeys: CodingKey {
+        case token
+        case expiresAt
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.token = try container.decode(String.self, forKey: .token)
+        let timestamp = try container.decode(Int.self, forKey: .expiresAt)
+        expiresAt = Date(timeIntervalSince1970: TimeInterval(timestamp))
+//        self.expiresAt = try container.decode(Date.self, forKey: .expiresAt)
+    }
 }
 
-struct SAProcessAuthRequest: Codable {
+struct SAProcessAuthRequest: Encodable {
     // user ~ id/handle (skip for now since this is passkey only flow...ish)
     let credential: SACredential
+    let user: SAUser?
     struct SACredential: Codable {
         let type: String = "public-key"
         let rawId: Base64URL

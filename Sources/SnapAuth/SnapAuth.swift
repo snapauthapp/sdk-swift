@@ -26,7 +26,7 @@ import AuthenticationServices
 
 
  */
-@available(macOS 12.0, *)
+@available(macOS 12.0, iOS 15.0, *)
 public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDelegate
     private let publishableKey: String
     private let urlBase: URL
@@ -56,6 +56,32 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         /// Only prompt for hardware keys
         case securityKeyOnly
     }
+
+    // TODO, determine other platforms
+    #if os(iOS)
+    @available(iOS 16.0, *)
+    public func handleAutofill(anchor: ASPresentationAnchor) async {
+        logger.debug("AF start")
+        self.anchor = anchor
+
+        let parsed = await makeRequest(
+            path: "/auth/createOptions",
+            body: ["ignore":"me"],
+            type: SACreateAuthOptions.self)!
+
+        let challenge = parsed.result.publicKey.challenge.toData()!
+        let provider = ASAuthorizationPlatformPublicKeyCredentialProvider(
+            relyingPartyIdentifier: parsed.result.publicKey.rpId)
+        let request = provider.createCredentialAssertionRequest(challenge: challenge)
+
+        let controller = ASAuthorizationController(authorizationRequests: [request])
+        controller.delegate = self
+        controller.presentationContextProvider = self
+        logger.debug("AF perform")
+        controller.performAutoFillAssistedRequests()
+
+    }
+    #endif
 
     /**
      TODO: this should take a new UserInfo
@@ -87,9 +113,10 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
             relyingPartyIdentifier: parsed.result.publicKey.rpId)
 
         /// Process the `allowedCredentials` so the authenticator knows what it can use
-        let allowed = parsed.result.publicKey.allowCredentials.map {
+        let allowed = parsed.result.publicKey.allowCredentials!.map {
             ASAuthorizationPlatformPublicKeyCredentialDescriptor(credentialID: $0.id.toData()!)
         }
+
 
         //        logger.debug("RP: \(parsed.result.publicKey.rpId)")
         let request = provider.createCredentialAssertionRequest(challenge: challenge)
@@ -100,7 +127,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         let p2 = ASAuthorizationSecurityKeyPublicKeyCredentialProvider(
             relyingPartyIdentifier: parsed.result.publicKey.rpId)
         let r2 = p2.createCredentialAssertionRequest(challenge: challenge)
-        let a2 = parsed.result.publicKey.allowCredentials.map {
+        let a2 = parsed.result.publicKey.allowCredentials!.map {
             ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor(
                 credentialID: $0.id.toData()!,
                 transports: ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor.Transport.allSupported) /// TODO: the API should hint this
@@ -121,7 +148,8 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         controller.performRequests()
         logger.debug("performed requests")
 
-        //  Sometimes the controller just WILL NOT CALL EITHER DELEGATE METHOD, so... yeah.
+        // Sometimes the controller just WILL NOT CALL EITHER DELEGATE METHOD, so... yeah.
+        // Maybe start a timer and auto-fail if neither delegate method runs in time?
 
     }
 
@@ -154,7 +182,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 
 }
 
-@available(macOS 12.0, *)
+@available(macOS 12.0, iOS 15.0, *)
 extension SnapAuth: ASAuthorizationControllerDelegate {
 
     public func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
@@ -174,22 +202,41 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
     public func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
         logger.debug("ASACD did complete")
 
-        // This cast may be different if arriving from a physical key?
-        guard let assertion = authorization.credential as? ASAuthorizationPlatformPublicKeyCredentialAssertion else {
-            logger.error("not assertion???")
+
+        switch authorization.credential {
+        case is ASAuthorizationSecurityKeyPublicKeyCredentialAssertion:
+            logger.debug("switch hardware key")
+        case is ASAuthorizationPlatformPublicKeyCredentialAssertion:
+            logger.debug("switch passkey")
+        default:
+            logger.debug("uhh")
+        }
+
+        guard let assertion = authorization.credential as? ASAuthorizationPublicKeyCredentialAssertion else {
             return
         }
 
-        let cRes = SAProcessAuthRequest.SACredential.Response(
+        // This can (will always?) be `nil` when using, at least, a hardware key
+        let userHandle = assertion.userID != nil
+            ? Base64URL(from: assertion.userID)
+            : nil
+
+        // If userHandle is nil, guard that we have userInfo since it's required on the BE
+
+
+        let credentialId = Base64URL(from: assertion.credentialID)
+        let response = SAProcessAuthRequest.SACredential.Response(
             authenticatorData: Base64URL(from: assertion.rawAuthenticatorData),
             clientDataJSON: Base64URL(from: assertion.rawClientDataJSON),
             signature: Base64URL(from: assertion.signature),
-            userHandle: Base64URL(from: assertion.userID)
-        )
-        let cCrd = SAProcessAuthRequest.SACredential(rawId: Base64URL(from: assertion.credentialID), response: cRes)
+            userHandle: userHandle)
+
+        let cCrd = SAProcessAuthRequest.SACredential(
+            rawId: credentialId,
+            response: response)
         let body = SAProcessAuthRequest(credential: cCrd)
         logger.debug("made a body")
-        logger.debug("user id \(assertion.userID.base64EncodedString())")
+//        logger.debug("user id \(assertion.userID.base64EncodedString())")
         Task {
             let tokenResponse = await makeRequest(path: "/auth/process", body: body, type: SAAuthData.self)
             if tokenResponse == nil {
@@ -203,7 +250,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         }
     }
 }
-@available(macOS 12.0, *)
+@available(macOS 12.0, iOS 15.0, *)
 extension SnapAuth: ASAuthorizationControllerPresentationContextProviding {
     public func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
         logger.debug("presentation anchor")
@@ -246,7 +293,7 @@ struct SACreateAuthOptions: Codable {
 
         let rpId: String
         let challenge: Base64URL
-        let allowCredentials: [AllowCredential]
+        let allowCredentials: [AllowCredential]?
     }
 }
 
@@ -266,7 +313,7 @@ struct SAProcessAuthRequest: Codable {
             let authenticatorData: Base64URL
             let clientDataJSON: Base64URL
             let signature: Base64URL
-            let userHandle: Base64URL // todo: optional
+            let userHandle: Base64URL?
         }
     }
 
@@ -278,6 +325,8 @@ public enum SAAuthResponse {
     case failure // TODO: associated data
 }
 
+
+@available(iOS 15.0, *)
 public protocol SnapAuthDelegate {
     // optional?
     func snapAuth(didAuthenticate authenticationResponse: SAAuthResponse) async

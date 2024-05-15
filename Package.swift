@@ -8,7 +8,7 @@ let package = Package(
     platforms: [
         .macOS(.v12),
 //        .macCatalyst(.v13),
-        .iOS(.v12),
+        .iOS(.v15),
     ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.

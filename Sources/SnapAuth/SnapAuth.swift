@@ -48,11 +48,21 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         self.logger = Logger()
     }
 
+    public enum Providers {
+        /// Allow passkeys and hardware keys
+        case all
+        /// Only prompt for passkeys
+        case passkeyOnly
+        /// Only prompt for hardware keys
+        case securityKeyOnly
+    }
+
     /**
      TODO: this should take a new UserInfo
      */
-    public func startAuth(_ user: SAUser, anchor: ASPresentationAnchor) async {
+    public func startAuth(_ user: SAUser, anchor: ASPresentationAnchor, providers: Providers = .all) async {
         self.anchor = anchor
+
         let body: [String: [String: String]]
         switch user {
         case .id(let id):
@@ -61,28 +71,49 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
             body = ["user": ["handle": handle]]
         }
 
-        let parsed = await makeRequest(path: "/auth/createOptions", body: body, type: SACreateAuthOptions.self)!
-
+        let parsed = await makeRequest(
+            path: "/auth/createOptions",
+            body: body,
+            type: SACreateAuthOptions.self)!
 
 //        logger.debug("parsed ok")
 //        logger.debug("\(parsed.result.publicKey.challenge)")
 
+        // https://developer.apple.com/videos/play/wwdc2022/10092/ ~ 12:05
+
         let challenge = parsed.result.publicKey.challenge.toData()!
-        let provider = ASAuthorizationPlatformPublicKeyCredentialProvider(relyingPartyIdentifier: parsed.result.publicKey.rpId)
-//        logger.debug("RP: \(parsed.result.publicKey.rpId)")
-        let request = provider.createCredentialAssertionRequest(challenge: challenge)
 
+        let provider = ASAuthorizationPlatformPublicKeyCredentialProvider(
+            relyingPartyIdentifier: parsed.result.publicKey.rpId)
 
+        /// Process the `allowedCredentials` so the authenticator knows what it can use
         let allowed = parsed.result.publicKey.allowCredentials.map {
             ASAuthorizationPlatformPublicKeyCredentialDescriptor(credentialID: $0.id.toData()!)
         }
+
+        //        logger.debug("RP: \(parsed.result.publicKey.rpId)")
+        let request = provider.createCredentialAssertionRequest(challenge: challenge)
         request.allowedCredentials = allowed
 
+
         // this works, will need to decode differently
-//        let p2 = ASAuthorizationSecurityKeyPublicKeyCredentialProvider(relyingPartyIdentifier: parsed.result.publicKey.rpId)
-//        let r2 = p2.createCredentialAssertionRequest(challenge: challenge)
+        let p2 = ASAuthorizationSecurityKeyPublicKeyCredentialProvider(
+            relyingPartyIdentifier: parsed.result.publicKey.rpId)
+        let r2 = p2.createCredentialAssertionRequest(challenge: challenge)
+        let a2 = parsed.result.publicKey.allowCredentials.map {
+            ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor(
+                credentialID: $0.id.toData()!,
+                transports: ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor.Transport.allSupported) /// TODO: the API should hint this
+        }
+        r2.allowedCredentials = a2
         logger.debug("before controller")
-        let controller = ASAuthorizationController(authorizationRequests: [request]) // + r2
+
+
+        /// TODO: look at providers to fill in `requests`
+
+        /// Set up the native controller and start the request(s).
+        /// The UI should show the sheet to use a passkey or security key
+        let controller = ASAuthorizationController(authorizationRequests: [request, r2]) // + r2
         logger.debug("setting delegate")
         controller.delegate = self
         controller.presentationContextProvider = self
@@ -132,6 +163,8 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         // Error Domain=com.apple.AuthenticationServices.AuthorizationError Code=1004 "Application with identifier V46X94865S.app.snapauth.PassKeyExample is not associated with domain demo.snapauth.app" UserInfo={NSLocalizedFailureReason=Application with identifier V46X94865S.app.snapauth.PassKeyExample is not associated with domain demo.snapauth.app}
         // (lldb) po error.localizedDescription
         // "The operation couldn’t be completed. Application with identifier V46X94865S.app.snapauth.PassKeyExample is not associated with domain demo.snapauth.app"
+
+        
 
         Task {
             // Failure reason, etc, etc

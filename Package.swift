@@ -5,6 +5,11 @@ import PackageDescription
 
 let package = Package(
     name: "SnapAuth",
+    platforms: [
+        .macOS(.v12),
+//        .macCatalyst(.v13),
+        .iOS(.v12),
+    ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(

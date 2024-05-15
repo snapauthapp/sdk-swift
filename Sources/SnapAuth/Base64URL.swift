@@ -10,7 +10,7 @@ import Foundation
 struct Base64URL: Codable {
     private var base64URLString: String
     
-    init(from decoder: Decoder) throws {
+    public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         base64URLString = try container.decode(String.self)
     }
@@ -23,7 +23,7 @@ struct Base64URL: Codable {
             .replacingOccurrences(of: "=", with: "") // FIXME: this should be explicitly rtrim
     }
     
-    func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         try container.encode(base64URLString)
     }
@@ -47,7 +47,7 @@ struct Base64URL: Codable {
 //     }
 }
 extension Base64URL: CustomStringConvertible {
-    var description: String {
+     var description: String {
         return base64URLString
     }
 }

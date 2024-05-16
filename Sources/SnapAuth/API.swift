@@ -49,22 +49,7 @@ struct SAProcessAuthRequest: Encodable {
 
 }
 
-struct SAProcessAuthResponse {
+struct SAProcessAuthResponse: Decodable {
     let token: String
     let expiresAt: Date
-}
-extension SAProcessAuthResponse: Decodable {
-    // Unixtime needs custom decoding
-    enum CodingKeys: CodingKey {
-        case token
-        case expiresAt
-    }
-
-    public init(from decoder: any Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.token = try container.decode(String.self, forKey: .token)
-        let timestamp = try container.decode(Int.self, forKey: .expiresAt)
-        expiresAt = Date(timeIntervalSince1970: TimeInterval(timestamp))
-//        self.expiresAt = try container.decode(Date.self, forKey: .expiresAt)
-    }
 }

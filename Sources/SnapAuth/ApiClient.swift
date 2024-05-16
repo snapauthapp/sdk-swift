@@ -45,10 +45,13 @@ struct SnapAuthClient {
         let jsonString = String(data: data, encoding: .utf8)
         logger?.debug("<-- \(jsonString ?? "not a string")")
 
-//        Skip custom codable?
-//        let jd = JSONDecoder()
-//        jd.dateDecodingStrategy = .secondsSince1970
-        guard let parsed = try? JSONDecoder().decode(SAWrappedResponse<T>.self, from: data) else {
+        // This allows skipping custom decodable implementations
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .secondsSince1970
+        guard let parsed = try? decoder.decode(
+            SAWrappedResponse<T>.self,
+            from: data)
+        else {
             logger?.error("nope")
             /// TODO: return some sort of failure SAResponse
             return nil

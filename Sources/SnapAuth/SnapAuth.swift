@@ -33,8 +33,8 @@ import AuthenticationServices
  */
 @available(macOS 12.0, iOS 15.0, *)
 public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDelegate
-    private let publishableKey: String
-    private let urlBase: URL
+
+    private let api: SnapAuthClient
 
     private let logger: Logger
 
@@ -49,10 +49,12 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 //         delegate: SnapAuthDelegate,
          urlBase: URL = URL(string: "https://api.snapauth.app")!
     ) {
-        self.publishableKey = publishableKey
+        logger = Logger()
+        api = SnapAuthClient(
+            urlBase: urlBase,
+            publishableKey: publishableKey,
+            logger: logger)
 //        self.delegate = delegate
-        self.urlBase = urlBase
-        self.logger = Logger()
     }
 
     public enum Providers {
@@ -88,7 +90,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     public func handleAutofill(presentationContextProvider: ASAuthorizationControllerPresentationContextProviding) async {
         reset()
         logger.debug("AF start")
-        let parsed = await makeRequest(
+        let parsed = await api.makeRequest(
             path: "/auth/createOptions",
             body: ["ignore":"me"],
             type: SACreateAuthOptionsResponse.self)!
@@ -124,7 +126,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
             body = ["user": ["handle": handle]]
         }
 
-        let parsed = await makeRequest(
+        let parsed = await api.makeRequest(
             path: "/auth/createOptions",
             body: body,
             type: SACreateAuthOptionsResponse.self)!
@@ -179,43 +181,6 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         // Maybe start a timer and auto-fail if neither delegate method runs in time?
 
     }
-
-    /// Internal API call wrapper
-    private func makeRequest<T>(
-        path: String,
-        body: Encodable,
-        type: T.Type
-    ) async -> SAWrappedResponse<T>? {
-        let url = urlBase.appendingPathComponent(path)
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "content-type")
-        request.setValue(basic, forHTTPHeaderField: "Authorization")
-        let json = try! JSONEncoder().encode(body)
-        request.httpBody = json
-        logger.debug("--> \(String(decoding: json, as: UTF8.self))")
-
-        let (data, response) = try! await URLSession.shared.data(for: request)
-        let jsonString = String(data: data, encoding: .utf8)
-        logger.debug("<-- \(jsonString ?? "not a string")")
-
-//        Skip custom codable?
-//        let jd = JSONDecoder()
-//        jd.dateDecodingStrategy = .secondsSince1970
-        guard let parsed = try? JSONDecoder().decode(SAWrappedResponse<T>.self, from: data) else {
-            logger.error("nope")
-            /// TODO: return some sort of failure SAResponse
-            return nil
-        }
-
-        return parsed
-    }
-
-    /// Auth header generation
-    var basic: String {
-        return "Basic " + Data("\(publishableKey):".utf8).base64EncodedString()
-    }
-
 }
 
 @available(macOS 12.0, iOS 15.0, *)
@@ -290,7 +255,10 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         logger.debug("made a body")
 //        logger.debug("user id \(assertion.userID.base64EncodedString())")
         Task {
-            let tokenResponse = await makeRequest(path: "/auth/process", body: body, type: SAProcessAuthResponse.self)
+            let tokenResponse = await api.makeRequest(
+                path: "/auth/process",
+                body: body,
+                type: SAProcessAuthResponse.self)
             if tokenResponse == nil {
                 logger.debug("no/invalid process response")
                 /// TODO: delegate failure (network error?)

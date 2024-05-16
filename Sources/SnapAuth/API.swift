@@ -1,6 +1,5 @@
 import Foundation
 
-// just decodable? Also, build this on top of Result<S,E>?
 /**
  Wrapper that matches the API wire format
 

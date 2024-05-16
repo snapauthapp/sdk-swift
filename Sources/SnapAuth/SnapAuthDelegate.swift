@@ -1,11 +1,11 @@
 import Foundation
 
 public protocol SnapAuthDelegate {
-    func snapAuth(didAuthenticate authenticationResponse: SAAuthResponse) async
+//    func snapAuth(didAuthenticate authenticationResponse: SAAuthResponse) async
 //    func snapAuth(didRegister registrationResponse: SAAuthResponse) async
     // didBeginProcessing(registration/authn/autofill)
 
-    func sa(didAuth auth: Result<SnapAuthAuth, AuthenticationError>) async
+    func snapAuth(didFinishAuthentication result: Result<SnapAuthAuth, AuthenticationError>) async
 }
 /*
  extension SnapAuthDelegate {
@@ -16,6 +16,7 @@ public protocol SnapAuthDelegate {
 */
 
 /// TODO: rename this!
+/// Also, can this be a typealias of the wire format internal?
 public struct SnapAuthAuth {
   public let token: String
   public let expiresAt: Date

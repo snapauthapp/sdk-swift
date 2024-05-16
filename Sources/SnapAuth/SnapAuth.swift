@@ -225,6 +225,10 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         controller: ASAuthorizationController,
         didCompleteWithError error: Error
     ) {
+        if let asError = error as? ASAuthorizationError {
+
+            logger.error("ASACD \(asError.errorCode)")
+        }
         logger.error("ASACD fail: \(error)")
         // (lldb) po error
         // Error Domain=com.apple.AuthenticationServices.AuthorizationError Code=1004 "Application with identifier V46X94865S.app.snapauth.PassKeyExample is not associated with domain demo.snapauth.app" UserInfo={NSLocalizedFailureReason=Application with identifier V46X94865S.app.snapauth.PassKeyExample is not associated with domain demo.snapauth.app}
@@ -233,7 +237,8 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
 
         Task {
             // Failure reason, etc, etc
-            await delegate?.snapAuth(didAuthenticate: .failure)
+//            await delegate?.snapAuth(didAuthenticate: .failure)
+            await delegate?.snapAuth(didFinishAuthentication: .failure(.asAuthorizationError))
         }
     }
 
@@ -288,11 +293,15 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
             let tokenResponse = await makeRequest(path: "/auth/process", body: body, type: SAProcessAuthResponse.self)
             if tokenResponse == nil {
                 logger.debug("no/invalid process response")
+                /// TODO: delegate failure (network error?)
                 return
             }
             logger.debug("got token response")
+            let rewrapped = SnapAuthAuth(
+                token: tokenResponse!.result.token,
+                expiresAt: tokenResponse!.result.expiresAt)
 
-            await delegate?.snapAuth(didAuthenticate: .success(tokenResponse!.result))
+            await delegate?.snapAuth(didFinishAuthentication: .success(rewrapped))
 
         }
     }
@@ -341,11 +350,3 @@ extension SAUser: Encodable {
          }
      }
 }
-
-
-
-public enum SAAuthResponse {
-    case success(SAProcessAuthResponse)
-    case failure // TODO: associated data
-}
-

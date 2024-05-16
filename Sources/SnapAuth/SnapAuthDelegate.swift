@@ -6,6 +6,8 @@ public protocol SnapAuthDelegate {
     // didBeginProcessing(registration/authn/autofill)
 
     func snapAuth(didFinishAuthentication result: Result<SnapAuthAuth, AuthenticationError>) async
+
+    func snapAuth(didFinishRegistration result: Result<SnapAuthAuth, AuthenticationError>) async
 }
 /*
  extension SnapAuthDelegate {

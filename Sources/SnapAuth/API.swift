@@ -10,6 +10,80 @@ struct SAWrappedResponse<T>: Decodable where T: Decodable {
     let result: T
 }
 
+struct SACreateRegisterOptionsRequest: Encodable {
+    let user: SAUser?
+}
+struct SACreateRegisterOptionsResponse: Decodable {
+    let publicKey: PublicKeyOptions
+
+    struct PublicKeyOptions: Decodable {
+        let rp: RPInfo
+        let user: UserInfo
+        let challenge: Base64URL
+        // let pubKeyCredParams: ['type' => 'public-key', 'alg' => Int][]
+        // timeout: Int
+        let attestation: Attestation
+        // authenticatorSelection is a mess
+
+        struct RPInfo: Decodable {
+            let id: String
+            let name: String
+        }
+        struct UserInfo: Decodable {
+            let id: Base64URL
+        }
+    }
+}
+
+struct SAProcessRegisterRequest: Encodable {
+    let credential: RegCredential
+
+    struct RegCredential: Encodable {
+        let type: String = "public-key"
+        let rawId: Base64URL
+        let response: RegResponse
+        // authenticatorAttachment
+        // clientExtensionResults
+        struct RegResponse: Encodable {
+            let clientDataJSON: Base64URL
+            let attestationObject: Base64URL
+            let transports: [Transport]
+        }
+    }
+}
+
+
+enum Attestation: String, Decodable {
+    case none
+    case indirect
+    case direct
+    case enterprise
+}
+
+
+enum Transport: String, Encodable {
+    case ble
+    case smartCard = "smart-card"
+    case hybrid
+    case `internal`
+    case nfc
+    case usb
+
+    /*
+    private typealias ASTransport = ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor.Transport
+
+    init(from asFormat: ASTransport) {
+        switch asFormat {
+        case ASTransport.bluetooth:
+            self = .ble
+        case ASTransport.nfc:
+            self = .nfc
+        case ASTransport.usb:
+            self = .usb
+        }
+    }
+     */
+}
 
 
 

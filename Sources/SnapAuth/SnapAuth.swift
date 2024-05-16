@@ -50,8 +50,8 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     public init(
        publishableKey: String,
        urlBase: URL = URL(string: "https://api.snapauth.app")!
-     ) {
-        logger = Logger()
+    ) {
+        logger = Logger(subsystem: "SnapAuth", category: "SA Cat")
         api = SnapAuthClient(
             urlBase: urlBase,
             publishableKey: publishableKey,
@@ -128,6 +128,44 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
          }
     }
     #endif
+
+
+    public func startRegister(name: String, anchor: ASPresentationAnchor) async {
+        reset()
+        self.anchor = anchor
+
+        let body = SACreateRegisterOptionsRequest(user: nil)
+        let options = await api.makeRequest(
+            path: "/registration/createOptions",
+            body: body,
+            type: SACreateRegisterOptionsResponse.self)!
+
+        let challenge = options.result.publicKey.challenge.toData()!
+
+        // Passkeys
+        let provider = ASAuthorizationPlatformPublicKeyCredentialProvider(
+            relyingPartyIdentifier: options.result.publicKey.rp.id)
+        let request = provider.createCredentialRegistrationRequest(
+            challenge: challenge,
+            name: name,
+            userID: options.result.publicKey.user.id.toData()!)
+
+        // Hardware keys
+        let hwProvider = ASAuthorizationSecurityKeyPublicKeyCredentialProvider(
+            relyingPartyIdentifier: options.result.publicKey.rp.id)
+        let hwRequest = hwProvider.createCredentialRegistrationRequest(
+            challenge: challenge,
+            displayName: name, name: name, userID: options.result.publicKey.user.id.toData()!)
+        hwRequest.attestationPreference = .direct // TODO: API
+        hwRequest.credentialParameters = [.init(algorithm: .ES256)] // TODO: API
+
+        let controller = ASAuthorizationController(authorizationRequests: [request, hwRequest])
+        authController = controller
+        controller.delegate = self
+        controller.presentationContextProvider = self
+        logger.debug("SR perform")
+        controller.performRequests()
+    }
 
     private var authenticatingUser: SAUser?
     /**
@@ -239,21 +277,77 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         switch authorization.credential {
         case is ASAuthorizationSecurityKeyPublicKeyCredentialAssertion:
             logger.debug("switch hardware key assn")
+            handleAssertion(authorization.credential as! ASAuthorizationSecurityKeyPublicKeyCredentialAssertion)
         case is ASAuthorizationPlatformPublicKeyCredentialAssertion:
             logger.debug("switch passkey assn")
+            handleAssertion(authorization.credential as! ASAuthorizationPlatformPublicKeyCredentialAssertion)
         case is ASAuthorizationPlatformPublicKeyCredentialRegistration:
             logger.debug("switch passkey registration")
-        case is ASAuthorizationSecurityKeyPublicKeyCredentialAssertion:
+            handleRegistration(authorization.credential as! ASAuthorizationPlatformPublicKeyCredentialRegistration)
+        case is ASAuthorizationSecurityKeyPublicKeyCredentialRegistration:
             logger.debug("switch hardware key registration")
+            handleRegistration(authorization.credential as! ASAuthorizationSecurityKeyPublicKeyCredentialRegistration)
         default:
-            logger.debug("uhh")
+            logger.error("uhh")
         }
-
         /// TODO: registration support in here as well - ASAuthorization uses the same callback
+    }
 
-        guard let assertion = authorization.credential as? ASAuthorizationPublicKeyCredentialAssertion else {
+    private func handleRegistration(
+        _ registration: ASAuthorizationPublicKeyCredentialRegistration
+    ) {
+        // Decode, send to SA, hand back resposne via delegate method
+        logger.info("got a registratoin response")
+
+        let credentialId = Base64URL(from: registration.credentialID)
+
+        /*
+         Leaving transports out for now
+        if let secKey = registration as? ASAuthorizationSecurityKeyPublicKeyCredentialRegistration {
+            if #available(iOS 17.5, *) {
+                let transports = secKey.transports.map { Transport(from: $0) }
+            } else {
+                // Fallback on earlier versions
+            }
+        }
+         */
+        guard registration.rawAttestationObject != nil else {
+            logger.error("No attestation")
             return
         }
+
+
+        let response = SAProcessRegisterRequest.RegCredential.RegResponse(
+            clientDataJSON: Base64URL(from: registration.rawClientDataJSON),
+            attestationObject: Base64URL(from: registration.rawAttestationObject!),
+            transports: [])
+        let credential = SAProcessRegisterRequest.RegCredential(
+            rawId: credentialId,
+            response: response)
+        let body = SAProcessRegisterRequest(credential: credential)
+
+        Task {
+            let tokenResponse = await api.makeRequest(
+                path: "/registration/process",
+                body: body,
+                type: SAProcessAuthResponse.self)
+            if tokenResponse == nil {
+                logger.debug("no/invalid process response")
+                /// TODO: delegate failure (network error?)
+                return
+            }
+            logger.debug("got token response")
+            let rewrapped = SnapAuthAuth(
+                token: tokenResponse!.result.token,
+                expiresAt: tokenResponse!.result.expiresAt)
+
+            await delegate?.snapAuth(didFinishRegistration: .success(rewrapped))
+        }
+    }
+
+    private func handleAssertion(
+        _ assertion: ASAuthorizationPublicKeyCredentialAssertion
+    ) {
 
         // This can (will always?) be `nil` when using, at least, a hardware key
         let userHandle = assertion.userID != nil
@@ -273,7 +367,9 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         let cCrd = SAProcessAuthRequest.SACredential(
             rawId: credentialId,
             response: response)
-        let body = SAProcessAuthRequest(credential: cCrd, user: authenticatingUser)
+        let body = SAProcessAuthRequest(
+            credential: cCrd,
+            user: authenticatingUser)
         logger.debug("made a body")
 //        logger.debug("user id \(assertion.userID.base64EncodedString())")
         Task {
@@ -292,8 +388,8 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
                 expiresAt: tokenResponse!.result.expiresAt)
 
             await delegate?.snapAuth(didFinishAuthentication: .success(rewrapped))
-
         }
+
     }
 }
 

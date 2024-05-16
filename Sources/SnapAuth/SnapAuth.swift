@@ -47,16 +47,15 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 
     private var authController: ASAuthorizationController?
 
-    public init(publishableKey: String,
-//         delegate: SnapAuthDelegate,
-         urlBase: URL = URL(string: "https://api.snapauth.app")!
-    ) {
+    public init(
+       publishableKey: String,
+       urlBase: URL = URL(string: "https://api.snapauth.app")!
+     ) {
         logger = Logger()
         api = SnapAuthClient(
             urlBase: urlBase,
             publishableKey: publishableKey,
             logger: logger)
-//        self.delegate = delegate
     }
 
     public enum Providers {
@@ -99,16 +98,17 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     @available(iOS 16.0, *)
     public func handleAutofill(presentationContextProvider: ASAuthorizationControllerPresentationContextProviding) async {
         reset()
-        logger.debug("AF start")
+        logger.debug("AF PCP start")
         let parsed = await api.makeRequest(
             path: "/auth/createOptions",
-            body: ["ignore":"me"],
+            body: [:] as [String:String],
             type: SACreateAuthOptionsResponse.self)!
 
         let challenge = parsed.result.publicKey.challenge.toData()!
         let provider = ASAuthorizationPlatformPublicKeyCredentialProvider(
             relyingPartyIdentifier: parsed.result.publicKey.rpId)
-        let request = provider.createCredentialAssertionRequest(challenge: challenge)
+        let request = provider.createCredentialAssertionRequest(
+            challenge: challenge)
 
 
         let controller = ASAuthorizationController(authorizationRequests: [request])
@@ -144,9 +144,6 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
             path: "/auth/createOptions",
             body: body,
             type: SACreateAuthOptionsResponse.self)!
-
-//        logger.debug("parsed ok")
-//        logger.debug("\(parsed.result.publicKey.challenge)")
 
         // https://developer.apple.com/videos/play/wwdc2022/10092/ ~ 12:05
 
@@ -205,7 +202,10 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         controller: ASAuthorizationController,
         didCompleteWithError error: Error
     ) {
+        // TODO: don't bubble this up if it's from an autofill request
         if let asError = error as? ASAuthorizationError {
+//            asError.code == .canceled
+
 
             logger.error("ASACD \(asError.errorCode)")
         }
@@ -214,6 +214,9 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         // Error Domain=com.apple.AuthenticationServices.AuthorizationError Code=1004 "Application with identifier V46X94865S.app.snapauth.PassKeyExample is not associated with domain demo.snapauth.app" UserInfo={NSLocalizedFailureReason=Application with identifier V46X94865S.app.snapauth.PassKeyExample is not associated with domain demo.snapauth.app}
         // (lldb) po error.localizedDescription
         // "The operation couldn’t be completed. Application with identifier V46X94865S.app.snapauth.PassKeyExample is not associated with domain demo.snapauth.app"
+
+        // The start call can SILENTLY produce this error which never makes it into this handler
+        // ASAuthorizationController credential request failed with error: Error Domain=com.apple.AuthenticationServices.AuthorizationError Code=1004 "(null)"
 
         Task {
             // Failure reason, etc, etc
@@ -226,6 +229,10 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         controller: ASAuthorizationController,
         didCompleteWithAuthorization authorization: ASAuthorization
     ) {
+        if delegate == nil {
+            logger.error("No SnapAuth delegate set")
+            return
+        }
         logger.debug("ASACD did complete")
 
 

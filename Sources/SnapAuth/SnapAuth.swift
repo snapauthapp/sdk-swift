@@ -118,13 +118,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         self.anchor = anchor
         self.authenticatingUser = user
 
-        let body: [String: [String: String]]
-        switch user {
-        case .id(let id):
-            body = ["user": ["id": id]]
-        case .handle(let handle):
-            body = ["user": ["handle": handle]]
-        }
+        let body = ["user": user]
 
         let parsed = await api.makeRequest(
             path: "/auth/createOptions",

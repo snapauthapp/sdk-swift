@@ -69,6 +69,11 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     // TODO, determine other platforms
     #if os(iOS)
     @available(iOS 16.0, *)
+    public func handleAutofill() async {
+        await handleAutofill(anchor: ASPresentationAnchor())
+    }
+
+    @available(iOS 16.0, *)
     public func handleAutofill(anchor: ASPresentationAnchor) async {
         self.anchor = anchor
 

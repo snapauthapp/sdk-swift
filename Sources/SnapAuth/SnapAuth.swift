@@ -45,6 +45,8 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 
     private var anchor: ASPresentationAnchor?
 
+    private var authController: ASAuthorizationController?
+
     public init(publishableKey: String,
 //         delegate: SnapAuthDelegate,
          urlBase: URL = URL(string: "https://api.snapauth.app")!
@@ -86,6 +88,9 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     private func reset() -> Void {
 //        self.anchor = nil
         self.authenticatingUser = nil
+        if #available(iOS 16.0, *) {
+            cancelAutoFillAssistedPasskeySignIn()
+        }
     }
 
     /**
@@ -107,10 +112,20 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 
 
         let controller = ASAuthorizationController(authorizationRequests: [request])
+        authController = controller
         controller.delegate = self
         controller.presentationContextProvider = presentationContextProvider
         logger.debug("AF perform")
         controller.performAutoFillAssistedRequests()
+    }
+
+    @available(iOS 16.0, *)
+    func cancelAutoFillAssistedPasskeySignIn() {
+        logger.debug("cancel AF")
+        if authController != nil {
+           authController!.cancel()
+           authController = nil
+         }
     }
     #endif
 
@@ -169,6 +184,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         /// Set up the native controller and start the request(s).
         /// The UI should show the sheet to use a passkey or security key
         let controller = ASAuthorizationController(authorizationRequests: [request, r2]) // + r2
+        authController = controller
         logger.debug("setting delegate")
         controller.delegate = self
         controller.presentationContextProvider = self

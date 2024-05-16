@@ -91,7 +91,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         let parsed = await makeRequest(
             path: "/auth/createOptions",
             body: ["ignore":"me"],
-            type: SACreateAuthOptions.self)!
+            type: SACreateAuthOptionsResponse.self)!
 
         let challenge = parsed.result.publicKey.challenge.toData()!
         let provider = ASAuthorizationPlatformPublicKeyCredentialProvider(
@@ -127,7 +127,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         let parsed = await makeRequest(
             path: "/auth/createOptions",
             body: body,
-            type: SACreateAuthOptions.self)!
+            type: SACreateAuthOptionsResponse.self)!
 
 //        logger.debug("parsed ok")
 //        logger.debug("\(parsed.result.publicKey.challenge)")
@@ -181,7 +181,11 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     }
 
     /// Internal API call wrapper
-    private func makeRequest<T>(path: String, body: Encodable, type: T.Type) async -> SAResponse<T>? {
+    private func makeRequest<T>(
+        path: String,
+        body: Encodable,
+        type: T.Type
+    ) async -> SAWrappedResponse<T>? {
         let url = urlBase.appendingPathComponent(path)
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -195,8 +199,12 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         let jsonString = String(data: data, encoding: .utf8)
         logger.debug("<-- \(jsonString ?? "not a string")")
 
-        guard let parsed = try? JSONDecoder().decode(SAResponse<T>.self, from: data) else {
+//        Skip custom codable?
+//        let jd = JSONDecoder()
+//        jd.dateDecodingStrategy = .secondsSince1970
+        guard let parsed = try? JSONDecoder().decode(SAWrappedResponse<T>.self, from: data) else {
             logger.error("nope")
+            /// TODO: return some sort of failure SAResponse
             return nil
         }
 
@@ -277,7 +285,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         logger.debug("made a body")
 //        logger.debug("user id \(assertion.userID.base64EncodedString())")
         Task {
-            let tokenResponse = await makeRequest(path: "/auth/process", body: body, type: SAAuthData.self)
+            let tokenResponse = await makeRequest(path: "/auth/process", body: body, type: SAProcessAuthResponse.self)
             if tokenResponse == nil {
                 logger.debug("no/invalid process response")
                 return
@@ -334,75 +342,10 @@ extension SAUser: Encodable {
      }
 }
 
-// just decodable? Also, build this on top of Result<S,E>?
-struct SAResponse<T>: Decodable where T: Decodable {
-    let result: T
-}
-struct SACreateAuthOptions: Codable {
-    let publicKey: PublicKeyOptions
-    // mediation
-
-    struct PublicKeyOptions: Codable {
-
-        struct AllowCredential: Codable {
-            let type: String // == "public-key"
-            let id: Base64URL
-            // transports?
-        }
-
-        let rpId: String
-        let challenge: Base64URL
-        let allowCredentials: [AllowCredential]?
-    }
-}
-
-public struct SAAuthData {
-    public let token: String
-    public let expiresAt: Date
-}
-extension SAAuthData: Decodable {
-    // Unixtime needs custom decoding
-    enum CodingKeys: CodingKey {
-        case token
-        case expiresAt
-    }
-
-    public init(from decoder: any Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.token = try container.decode(String.self, forKey: .token)
-        let timestamp = try container.decode(Int.self, forKey: .expiresAt)
-        expiresAt = Date(timeIntervalSince1970: TimeInterval(timestamp))
-//        self.expiresAt = try container.decode(Date.self, forKey: .expiresAt)
-    }
-}
-
-struct SAProcessAuthRequest: Encodable {
-    // user ~ id/handle (skip for now since this is passkey only flow...ish)
-    let credential: SACredential
-    let user: SAUser?
-    struct SACredential: Codable {
-        let type: String = "public-key"
-        let rawId: Base64URL
-        let response: SACredential.Response
-        struct Response: Codable {
-            let authenticatorData: Base64URL
-            let clientDataJSON: Base64URL
-            let signature: Base64URL
-            let userHandle: Base64URL?
-        }
-    }
-
-}
 
 
 public enum SAAuthResponse {
-    case success(SAAuthData)
+    case success(SAProcessAuthResponse)
     case failure // TODO: associated data
 }
 
-
-@available(iOS 15.0, *)
-public protocol SnapAuthDelegate {
-    // optional?
-    func snapAuth(didAuthenticate authenticationResponse: SAAuthResponse) async
-}

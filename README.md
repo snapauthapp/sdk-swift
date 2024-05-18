@@ -17,9 +17,90 @@ watchOS | No[^no-platform] | No[^no-platform]
 
 ## Setup
 
+> [!IMPORTANT]
+> All native apps require special domain confirmation to use.
+> This cannot be skipped!
+
 If you haven't already registered for SnapAuth, do so: https://www.snapauth.app/register
 
-Use it to get your `publishable key` from the Dashboard.
+Unlike for web integrations, `localhost` generally does not work on Apple native apps.
+
+You should immediately create a non-local environment to test with, if you haven't already done so.
+Starting with a testing or staging server is a good place to start.
+
+<!--
+The `RP ID` from the dashbard _must_ exactly match the Associated Domains configuration below
+
+(This needs to be verified - the AD is what'll get checked for the file, but a subdomain match on the RP ID might be ok)
+-->
+
+### Add the Associated Domains capability
+
+> [!TIP]
+> You may have already done this if your existing app supports password autofill.
+> 
+> Still, fully review this section!
+
+More info:
+
+- https://developer.apple.com/documentation/xcode/supporting-associated-domains
+- https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_developer_associated-domains
+-
+
+In XCode, select your root-level project in the Navigator.
+
+Select your Target, and navigate to the Signing & Capabilities tab.
+
+Click `+ Capability` and select `Associated Domains`
+
+> [!NOTE]
+> This capability is restricted on free Apple Developer accounts.
+> Unfortunately, this means you must have a current, paid account to proceed.
+
+In the new Associated Domains section, click `+` and add your domain(s):
+
+`webcredentials:yourdomain.tld`
+
+
+### Publish the domain association file
+
+Get your App ID from the Apple Developer portal.
+
+Create the assoication file (or, if you already have one for other capabilities, add this section):
+
+```json
+{
+  "webcredentials": {
+    "apps": [
+      "your app id"
+    ]
+  }
+}
+```
+
+This file must be served at `https://yourdomain.tld/.well-known/apple-app-site-association`.
+
+`curl https://yourdomain.tld/.well-known/apple-app-site-association`
+
+#### Optional: enable SWC Developer Mode
+
+In production applications, Apple caches the Associated Domains file for about a day.
+For local development, you can bypass this cache:
+
+1) _Add_ a second entry to the Associated Domains section:
+`webcredentials:yourdomain.tld?mode=developer`
+
+2) Enable this feature on your development computer:
+
+```bash
+sudo swcutil developer-mode -e 1
+```
+
+(To disable in the future, run the above command again with `1` replaced with `0`)
+
+You still **must** publish the association file; this only bypasses the cache.
+
+
 
 ### Add the SDK
 
@@ -70,6 +151,8 @@ Registration is substantially the same.
 
 ### Call the API
 
+Grab your `publishable key` from the SnapAuth Dashboard; you'll use it below.
+
 This will typically be done in a Button's action.
 Here's a very simple sign-in View in SwiftUI:
 
@@ -78,7 +161,7 @@ import SnapAuth
 import SwiftUI
 
 struct SignInView: View {
-  let snapAuth = SnapAuth(publishableKey: "pubkey_yourkey")
+  let snapAuth = SnapAuth(publishableKey: "pubkey_yourkey") // Set this value!
 
   @State var username: String = ""
 

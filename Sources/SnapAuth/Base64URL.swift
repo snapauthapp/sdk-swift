@@ -1,20 +1,14 @@
-//
-//  Base64URL.swift
-//  PassKeyExample
-//
-//  Created by Eric Stern on 3/13/24.
-//
-
 import Foundation
 
+/// Converts in and out of Base64URL formats
 struct Base64URL: Codable {
     private var base64URLString: String
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         base64URLString = try container.decode(String.self)
     }
-    
+
     /// Reads in Data representing a base64 (not base64url) string
     init(from data: Data) {
         base64URLString = data.base64EncodedString()
@@ -22,7 +16,7 @@ struct Base64URL: Codable {
             .replacingOccurrences(of: "/", with: "_")
             .replacingOccurrences(of: "=", with: "") // FIXME: this should be explicitly rtrim
     }
-    
+
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         try container.encode(base64URLString)
@@ -40,14 +34,11 @@ struct Base64URL: Codable {
             return data
         }
         return nil
-     }
-     
-//     init(base64String: String) {
-//         self.base64String = base64String
-//     }
+    }
 }
+
 extension Base64URL: CustomStringConvertible {
-     var description: String {
+    var description: String {
         return base64URLString
     }
 }

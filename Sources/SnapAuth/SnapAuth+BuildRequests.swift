@@ -1,13 +1,5 @@
-//
-//  File.swift
-//
-//
-//  Created by Eric Stern on 5/17/24.
-//
-
 import AuthenticationServices
 
-//import Foundation
 @available(macOS 12.0, iOS 15.0, tvOS 16.0, *)
 extension SnapAuth {
     internal func buildRegisterRequests(
@@ -47,10 +39,6 @@ extension SnapAuth {
         }
 #endif
 
-        #if os(tvOS)
-        requests.append(ASAuthorizationPasswordProvider().createRequest())
-//        requests.append(ASAuthorizationCustomMethod.other)
-        #endif
         return requests
     }
 
@@ -92,11 +80,6 @@ extension SnapAuth {
             request.allowedCredentials = allowed
             requests.append(request)
         }
-#endif
-#if os(tvOS)
-        return [ASAuthorizationPasswordProvider().createRequest()]
-//requests.append(ASAuthorizationPasswordProvider().createRequest())
-//        requests.append(ASAuthorizationCustomMethod.other)
 #endif
         return requests
     }

@@ -1,13 +1,6 @@
-//
-//  SnapAuth.swift
-//  PassKeyExample
-//
-//  Created by Eric Stern on 3/15/24.
-//
-
-import Foundation
-import os // logger
 import AuthenticationServices
+import Foundation
+import os
 
 /*
  Resources:
@@ -113,7 +106,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     /// - Parameters:
     ///   - name: The name of the user.
     ///   - displayName: The proper name of the user. If omitted, name will be used.
-    ///   - keyTypes: What authenticators should be permitted. If omitted, 
+    ///   - keyTypes: What authenticators should be permitted. If omitted,
     ///   all available types for the platform will be allowed.
     ///
     /// - Returns: Nothing. Instead, the `SnapAuthDelegate` will be informed of the result.

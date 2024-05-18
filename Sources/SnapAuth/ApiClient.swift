@@ -1,16 +1,7 @@
-//
-//  File.swift
-//  
-//
-//  Created by Eric Stern on 5/15/24.
-//
-
 import Foundation
 import os
 
-/**
- Internal API call wrapper
- */
+/// Internal API call wrapper
 struct SnapAuthClient {
     private let urlBase: URL
     private let publishableKey: String

@@ -1,11 +1,11 @@
 import AuthenticationServices
 
-/**
- Adds AutoFill passkey support.
-
- Due to platform limitations, this is only available on iOS and visionOS.
- It is not (currently) supported on macOS, watchOS, tvOS, or Catalyst.
- */
+/// Adds AutoFill passkey support.
+///
+/// Due to platform limitations, this is only available on iOS and visionOS.
+/// It is not (currently) supported on macOS, watchOS, tvOS, or Catalyst.
+///
+/// Also, it doesn't seem to work _even on_ supported platforms.
 #if os(iOS) || os(visionOS)
 extension SnapAuth {
 
@@ -15,7 +15,7 @@ extension SnapAuth {
         await handleAutoFill(anchor: .default)
     }
 
-    /// Use the specified anchor. 
+    /// Use the specified anchor.
     /// This may be exposed publiy if needed, but the intent/goal is the default is (almost) always correct
     @available(iOS 16.0, *)
     internal func handleAutoFill(anchor: ASPresentationAnchor) async {

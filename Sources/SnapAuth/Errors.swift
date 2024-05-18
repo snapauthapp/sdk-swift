@@ -1,12 +1,4 @@
-//
-//  File.swift
-//  
-//
-//  Created by Eric Stern on 5/15/24.
-//
-
-//import Foundation
-
+// FIXME: Go through and ensure errors are complete and accurate.
 public enum AuthenticationError: Error {
     /// The user canceled
     case canceled
@@ -14,5 +6,4 @@ public enum AuthenticationError: Error {
     case networkDisrupted
 
     case asAuthorizationError
-    // ...
 }

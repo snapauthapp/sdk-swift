@@ -1,11 +1,8 @@
 import Foundation
 
-/**
- Wrapper that matches the API wire format
-
- Network calls (non-broken) will return the result and 0 or more errors on response, or null and one or more errors on error
-
- */
+/// Wrapper that matches the API wire format
+///
+/// Network calls (non-broken) will return the result and 0 or more errors on response, or null and one or more errors on error
 struct SAWrappedResponse<T>: Decodable where T: Decodable {
     let result: T
 }

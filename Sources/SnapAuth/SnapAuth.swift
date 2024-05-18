@@ -126,7 +126,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     /**
      TODO: this should take a new UserInfo
      */
-    public func startAuth(_ user: SAUser, anchor: ASPresentationAnchor, providers: Providers = .all) async {
+    public func startAuth(_ user: SAUser, anchor: ASPresentationAnchor, keyTypes: [KeyType] = KeyType.all) async {
         reset()
         self.anchor = anchor
         self.authenticatingUser = user
@@ -138,42 +138,16 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
             body: body,
             type: SACreateAuthOptionsResponse.self)!
 
-        // https://developer.apple.com/videos/play/wwdc2022/10092/ ~ 12:05
 
-        let challenge = parsed.result.publicKey.challenge.toData()!
-
-        let provider = ASAuthorizationPlatformPublicKeyCredentialProvider(
-            relyingPartyIdentifier: parsed.result.publicKey.rpId)
-
-        /// Process the `allowedCredentials` so the authenticator knows what it can use
-        let allowed = parsed.result.publicKey.allowCredentials!.map {
-            ASAuthorizationPlatformPublicKeyCredentialDescriptor(credentialID: $0.id.toData()!)
-        }
-
-
-        //        logger.debug("RP: \(parsed.result.publicKey.rpId)")
-        let request = provider.createCredentialAssertionRequest(challenge: challenge)
-        request.allowedCredentials = allowed
-
-
-        // this works, will need to decode differently
-        let p2 = ASAuthorizationSecurityKeyPublicKeyCredentialProvider(
-            relyingPartyIdentifier: parsed.result.publicKey.rpId)
-        let r2 = p2.createCredentialAssertionRequest(challenge: challenge)
-        let a2 = parsed.result.publicKey.allowCredentials!.map {
-            ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor(
-                credentialID: $0.id.toData()!,
-                transports: ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor.Transport.allSupported) /// TODO: the API should hint this
-        }
-        r2.allowedCredentials = a2
         logger.debug("before controller")
 
 
         /// TODO: look at providers to fill in `requests`
+        let authRequests = buildAuthRequests(from: parsed.result)
 
         /// Set up the native controller and start the request(s).
         /// The UI should show the sheet to use a passkey or security key
-        let controller = ASAuthorizationController(authorizationRequests: [request, r2]) // + r2
+        let controller = ASAuthorizationController(authorizationRequests: authRequests)
         authController = controller
         logger.debug("setting delegate")
         controller.delegate = self

@@ -36,7 +36,7 @@ Known issues:
 @available(macOS 12.0, iOS 15.0, tvOS 16.0, *)
 public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDelegate
 
-    /// The delegate that SnapAuth informs about the success or failure of an authorization attempt.
+    /// The delegate that SnapAuth informs about the success or failure of an operation.
     public var delegate: SnapAuthDelegate?
 
     internal let api: SnapAuthClient

@@ -4,18 +4,18 @@ This is the official Swift SDK for [SnapAuth](https://www.snapauth.app).
 
 ## Platform Support
 
-This SDK supports all major Apple platforms that support passkeys:
+This SDK supports all major Apple platforms that support passkeys and hardware authenticators:
 
 Platform | Passkeys | Hardware Keys
---- | --- |---
-iOS | ✅ | ✅
-iPadOS | ✅ | ✅
-macOS | ✅ | ✅
-visionOS | ✅ | ❌[^no-platform]
-tvOS | ⚠️[^platform-untested] | ❌[^no-platform]
-watchOS | ❌[^no-platform] | ❌[^no-platform]
+--- | --- | ---
+iOS | ✅ 15.0+ | ✅[^usb-hardware-varies] 15.0+
+iPadOS | ✅ 15.0+ | ✅[^usb-hardware-varies] 15.0+
+macOS | ✅ 12.0+ | ✅ 12.0+
+visionOS | ✅ 1.0+ | ❌[^no-usb]
+tvOS | ⚠️[^platform-untested] 16.0+ | ❌[^no-usb]
+watchOS | ❌[^no-watch] | ❌[^no-watch]
 
-## Setup
+## Apple-specific setup
 
 > [!IMPORTANT]
 > All native apps require special domain confirmation to use.
@@ -99,7 +99,9 @@ sudo swcutil developer-mode -e 1
 
 You still **must** publish the association file; this only bypasses the cache.
 
+## Usage
 
+SnapAuth will get you up and running with passkeys in a snap!
 
 ### Add the SDK
 
@@ -120,10 +122,6 @@ In any files that need to integrate with SnapAuth, be sure to import it:
 import SnapAuth
 ```
 
-## Usage
-
-SnapAuth will get you up and running with passkeys in a snap!
-
 ### Implement `SnapAuthDelegate`
 
 If using SwiftUI, this can be done directly on a `View`.
@@ -135,9 +133,9 @@ Example:
 ```swift
 import SnapAuth
 
-func snapAuth(didFinishAuthentication result: Result<SnapAuthAuth, AuthenticationError>) async {
+func snapAuth(didFinishAuthentication result: SnapAuthTokenInfo) async {
     guard case .success(let auth) = result else {
-        // User did not or could not authenticate. Update your UI accordingly
+        // User did not or could not authenticate.
         return
     }
     // Send `auth.token` to your backend for server-side verification. Use it to
@@ -185,5 +183,7 @@ extension SignInView: SnapAuthDelegate {
 }
 ```
 
-[^no-platform]: Unsupported by Apple (no USB port!)
+[^no-watch]: Passkeys are not supported on Apple Watch
+[^no-usb]: Unsupported by Apple (no USB port!)
 [^platform-untested]: Untested, but will probably work
+[^usb-hardware-varies]: Supported at the platform level, but compatibility varies by device. As a general rule, if it physically fits, it should work.

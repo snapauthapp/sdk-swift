@@ -50,6 +50,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 
     internal let logger: Logger
 
+    // TODO: weak (all of these)?
     internal var presentationContextProvider: ASAuthorizationControllerPresentationContextProviding?
 
     internal var anchor: ASPresentationAnchor?

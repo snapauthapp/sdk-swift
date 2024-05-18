@@ -1,19 +1,14 @@
-//
-//  File.swift
-//  
-//
-//  Created by Eric Stern on 5/17/24.
-//
-
 import AuthenticationServices
 
 #if os(macOS)
-// TODO: this will probably crash if it tries to start with no window open (but also how could it?)
-let defaultPresentationAnchor: ASPresentationAnchor = NSApplication.shared.mainWindow!
+// FIXME: Figure out better fallback mechanisms here.
+// This will cause a new window to open _and remain open_
+fileprivate let defaultPresentationAnchor: ASPresentationAnchor = NSApplication.shared.mainWindow ?? ASPresentationAnchor()
 #else
-let defaultPresentationAnchor: ASPresentationAnchor = (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.windows.first?.rootViewController?.view.window ?? ASPresentationAnchor()
+fileprivate let defaultPresentationAnchor: ASPresentationAnchor = (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.windows.first?.rootViewController?.view.window ?? ASPresentationAnchor()
 #endif
 
 extension ASPresentationAnchor {
+    /// A platform-specific anchor, intended to be used by ASAuthorizationController
     static let `default` = defaultPresentationAnchor
 }

@@ -33,14 +33,10 @@ extension SnapAuth {
             body: [:] as [String:String],
             type: SACreateAuthOptionsResponse.self)!
 
-        let challenge = parsed.result.publicKey.challenge.toData()!
-        let provider = ASAuthorizationPlatformPublicKeyCredentialProvider(
-            relyingPartyIdentifier: parsed.result.publicKey.rpId)
-        let request = provider.createCredentialAssertionRequest(
-            challenge: challenge)
+        /// TODO: passkey only here
+        let authRequests = buildAuthRequests(from: parsed.result)
 
-
-        let controller = ASAuthorizationController(authorizationRequests: [request])
+        let controller = ASAuthorizationController(authorizationRequests: authRequests)
         authController = controller
         controller.delegate = self
         controller.presentationContextProvider = presentationContextProvider

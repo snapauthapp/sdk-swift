@@ -127,10 +127,14 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     }
 
     private var authenticatingUser: SAUser?
-    /**
+    /*
      TODO: this should take a new UserInfo
      */
-    public func startAuth(_ user: SAUser, anchor: ASPresentationAnchor, keyTypes: [KeyType] = KeyType.all) async {
+    public func startAuth(
+        _ user: SAUser,
+        anchor: ASPresentationAnchor,
+        keyTypes: Set<KeyType> = KeyType.all
+    ) async {
         reset()
         self.anchor = anchor
         self.authenticatingUser = user
@@ -146,11 +150,10 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         logger.debug("before controller")
 
 
-        /// TODO: look at providers to fill in `requests`
-        let authRequests = buildAuthRequests(from: parsed.result)
+        let authRequests = buildAuthRequests(from: parsed.result, keyTypes: keyTypes)
 
-        /// Set up the native controller and start the request(s).
-        /// The UI should show the sheet to use a passkey or security key
+        // Set up the native controller and start the request(s).
+        // The UI should show the sheet to use a passkey or security key
         let controller = ASAuthorizationController(authorizationRequests: authRequests)
         authController = controller
         logger.debug("setting delegate")

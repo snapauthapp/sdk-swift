@@ -33,8 +33,7 @@ extension SnapAuth {
             body: [:] as [String:String],
             type: SACreateAuthOptionsResponse.self)!
 
-        /// TODO: passkey only here
-        let authRequests = buildAuthRequests(from: parsed.result)
+        let authRequests = buildAuthRequests(from: parsed.result, keyTypes: [.passkey])
 
         let controller = ASAuthorizationController(authorizationRequests: authRequests)
         authController = controller

@@ -68,10 +68,10 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         case securityKey
 
         /// Allow all available authenticator types to be used
-        public static let all: [KeyType] = [.passkey, .securityKey]
+        public static let all: Set<KeyType> = [.passkey, .securityKey]
         #else
         /// Allow all available authenticator types to be used
-        public static let all: [KeyType] = [.passkey]
+        public static let all: Set<KeyType> = [.passkey]
         #endif
     }
 
@@ -99,7 +99,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         name: String,
         anchor: ASPresentationAnchor,
         displayName: String? = nil,
-        keyTypes: [KeyType] = KeyType.all
+        keyTypes: Set<KeyType> = KeyType.all
     ) async {
         reset()
         self.anchor = anchor

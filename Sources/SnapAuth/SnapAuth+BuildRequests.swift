@@ -14,7 +14,7 @@ extension SnapAuth {
         from options: SACreateRegisterOptionsResponse,
         name: String,
         displayName: String?,
-        keyTypes: [SnapAuth.KeyType]
+        keyTypes: Set<SnapAuth.KeyType>
     ) -> [ASAuthorizationRequest] {
         let challenge = options.publicKey.challenge.toData()!
 

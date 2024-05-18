@@ -63,7 +63,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         /// Prompt for passkeys
         case passkey
 
-        #if !os(tvOS) && !os(visionOS)
+        #if HARDWARE_KEY_SUPPORT
         /// Prompt for hardware keys. This is not available on all platforms
         case securityKey
 

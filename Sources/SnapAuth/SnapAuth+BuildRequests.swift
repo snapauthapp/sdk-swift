@@ -31,7 +31,7 @@ extension SnapAuth {
             requests.append(request)
         }
 
-#if !os(visionOS) && !os(tvOS)
+#if HARDWARE_KEY_SUPPORT
         if keyTypes.contains(.securityKey) {
             let provider = ASAuthorizationSecurityKeyPublicKeyCredentialProvider(
                 relyingPartyIdentifier: options.publicKey.rp.id)
@@ -74,7 +74,7 @@ extension SnapAuth {
             requests.append(request)
         }
 
-#if !os(visionOS) && !os(tvOS)
+#if HARDWARE_KEY_SUPPORT
         if keyTypes.contains(.securityKey) {
 
             let provider = ASAuthorizationSecurityKeyPublicKeyCredentialProvider(

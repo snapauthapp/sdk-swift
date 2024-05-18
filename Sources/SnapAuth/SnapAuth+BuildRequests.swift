@@ -1,6 +1,6 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by Eric Stern on 5/17/24.
 //
@@ -18,59 +18,78 @@ extension SnapAuth {
     ) -> [ASAuthorizationRequest] {
         let challenge = options.publicKey.challenge.toData()!
 
-        // Passkeys
-        let provider = ASAuthorizationPlatformPublicKeyCredentialProvider(
-            relyingPartyIdentifier: options.publicKey.rp.id)
-        let request = provider.createCredentialRegistrationRequest(
-            challenge: challenge,
-            name: name,
-            userID: options.publicKey.user.id.toData()!)
+        var requests: [ASAuthorizationRequest] = []
 
-        /// TODO: filter tvOS+visionOS AND based on attn pref
-        // Hardware keys
-        let hwProvider = ASAuthorizationSecurityKeyPublicKeyCredentialProvider(
-            relyingPartyIdentifier: options.publicKey.rp.id)
-        let hwRequest = hwProvider.createCredentialRegistrationRequest(
-            challenge: challenge,
-            displayName: name, 
-            name: name,
-            userID: options.publicKey.user.id.toData()!)
-        hwRequest.attestationPreference = .direct // TODO: API
-        hwRequest.credentialParameters = [.init(algorithm: .ES256)] // TODO: API
+        if keyTypes.contains(.passkey) {
+            let provider = ASAuthorizationPlatformPublicKeyCredentialProvider(
+                relyingPartyIdentifier: options.publicKey.rp.id)
+            let request = provider.createCredentialRegistrationRequest(
+                challenge: challenge,
+                name: name,
+                userID: options.publicKey.user.id.toData()!)
 
-        return [request, hwRequest]
+            requests.append(request)
+        }
+
+#if !os(visionOS) && !os(tvOS)
+        if keyTypes.contains(.securityKey) {
+            let provider = ASAuthorizationSecurityKeyPublicKeyCredentialProvider(
+                relyingPartyIdentifier: options.publicKey.rp.id)
+            let request = provider.createCredentialRegistrationRequest(
+                challenge: challenge,
+                displayName: name,
+                name: name,
+                userID: options.publicKey.user.id.toData()!)
+            request.attestationPreference = .direct // TODO: use API response
+            request.credentialParameters = [.init(algorithm: .ES256)] // TODO: use API response
+
+            requests.append(request)
+        }
+#endif
+
+        return requests
     }
 
     internal func buildAuthRequests(
-        from options: SACreateAuthOptionsResponse
+        from options: SACreateAuthOptionsResponse,
+        keyTypes: Set<SnapAuth.KeyType>
     ) -> [ASAuthorizationRequest] {
         // https://developer.apple.com/videos/play/wwdc2022/10092/ ~ 12:05
 
         let challenge = options.publicKey.challenge.toData()!
 
-        let provider = ASAuthorizationPlatformPublicKeyCredentialProvider(
-            relyingPartyIdentifier: options.publicKey.rpId)
+        var requests: [ASAuthorizationRequest] = []
 
-        /// Process the `allowedCredentials` so the authenticator knows what it can use
-        let allowed = options.publicKey.allowCredentials!.map {
-            ASAuthorizationPlatformPublicKeyCredentialDescriptor(credentialID: $0.id.toData()!)
+        if keyTypes.contains(.passkey) {
+            let provider = ASAuthorizationPlatformPublicKeyCredentialProvider(
+                relyingPartyIdentifier: options.publicKey.rpId)
+
+            /// Process the `allowedCredentials` so the authenticator knows what it can use
+            let allowed = options.publicKey.allowCredentials!.map {
+                ASAuthorizationPlatformPublicKeyCredentialDescriptor(credentialID: $0.id.toData()!)
+            }
+
+            let request = provider.createCredentialAssertionRequest(challenge: challenge)
+            request.allowedCredentials = allowed
+            requests.append(request)
         }
 
+#if !os(visionOS) && !os(tvOS)
+        if keyTypes.contains(.securityKey) {
 
-        let request = provider.createCredentialAssertionRequest(challenge: challenge)
-        request.allowedCredentials = allowed
-
-
-        let p2 = ASAuthorizationSecurityKeyPublicKeyCredentialProvider(
-            relyingPartyIdentifier: options.publicKey.rpId)
-        let r2 = p2.createCredentialAssertionRequest(challenge: challenge)
-        let a2 = options.publicKey.allowCredentials!.map {
-            ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor(
-                credentialID: $0.id.toData()!,
-                transports: ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor.Transport.allSupported) /// TODO: the API should hint this
+            let provider = ASAuthorizationSecurityKeyPublicKeyCredentialProvider(
+                relyingPartyIdentifier: options.publicKey.rpId)
+            let request = provider.createCredentialAssertionRequest(challenge: challenge)
+            let allowed = options.publicKey.allowCredentials!.map {
+                ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor(
+                    credentialID: $0.id.toData()!,
+                    transports: ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor.Transport.allSupported) // TODO: the API should hint this
+            }
+            request.allowedCredentials = allowed
+            requests.append(request)
         }
-        r2.allowedCredentials = a2
+#endif
 
-        return [request, r2]
+        return requests
     }
 }

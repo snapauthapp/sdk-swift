@@ -1,15 +1,24 @@
 import Foundation
 
 public protocol SnapAuthDelegate {
-    func snapAuth(didFinishAuthentication result: Result<SnapAuthAuth, AuthenticationError>) async
+    func snapAuth(didFinishAuthentication result: SnapAuthResult) async
 
-    func snapAuth(didFinishRegistration result: Result<SnapAuthAuth, AuthenticationError>) async
+    func snapAuth(didFinishRegistration result: SnapAuthResult) async
 }
 
+public struct SnapAuthTokenInfo {
+    /// The registration or authentication token.
+    ///
+    /// This cannot be used directly by your client app.
+    /// It must be sent to your backend for verification, which will use a 
+    /// server SDK to either create a credential or verify the authentication.
+    public let token: String
 
-/// TODO: rename this!
-/// Also, can this be a typealias of the wire format internal?
-public struct SnapAuthAuth {
-  public let token: String
-  public let expiresAt: Date
+    /// When the paired token will expire.
+    ///
+    /// If you try to use it after this time (or more than once), the request
+    /// will be rejected.
+    public let expiresAt: Date
 }
+
+public typealias SnapAuthResult = Result<SnapAuthTokenInfo, AuthenticationError>

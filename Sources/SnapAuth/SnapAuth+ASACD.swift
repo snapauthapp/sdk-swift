@@ -122,7 +122,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
                 return
             }
             logger.debug("got token response")
-            let rewrapped = SnapAuthAuth(
+            let rewrapped = SnapAuthTokenInfo(
                 token: tokenResponse!.result.token,
                 expiresAt: tokenResponse!.result.expiresAt)
 
@@ -168,7 +168,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
                 return
             }
             logger.debug("got token response")
-            let rewrapped = SnapAuthAuth(
+            let rewrapped = SnapAuthTokenInfo(
                 token: tokenResponse!.result.token,
                 expiresAt: tokenResponse!.result.expiresAt)
 

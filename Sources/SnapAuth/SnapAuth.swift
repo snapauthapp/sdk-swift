@@ -31,21 +31,21 @@ import AuthenticationServices
 
 
  */
-@available(macOS 12.0, iOS 15.0, *)
+@available(macOS 12.0, iOS 15.0, tvOS 16.0, *)
 public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDelegate
 
-    private let api: SnapAuthClient
+    internal let api: SnapAuthClient
 
-    private let logger: Logger
+    internal let logger: Logger
 
     public var delegate: SnapAuthDelegate?
 
-    public var presentationContextProvider: ASWebAuthenticationPresentationContextProviding?
+    public var presentationContextProvider: ASAuthorizationControllerPresentationContextProviding?
 
 
-    private var anchor: ASPresentationAnchor?
+    internal var anchor: ASPresentationAnchor?
 
-    private var authController: ASAuthorizationController?
+    internal var authController: ASAuthorizationController?
 
     public init(
        publishableKey: String,
@@ -61,73 +61,37 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     public enum Providers {
         /// Allow passkeys and hardware keys
         case all
+
         /// Only prompt for passkeys
         case passkeyOnly
-        /// Only prompt for hardware keys
+
+        #if !os(tvOS) && !os(visionOS)
+        /// Only prompt for hardware keys. This will not work on all platforms.
         case securityKeyOnly
-    }
-
-    // TODO, determine other platforms
-    #if os(iOS)
-    @available(iOS 16.0, *)
-    public func handleAutofill() async {
-        await handleAutofill(anchor: ASPresentationAnchor())
-    }
-
-    @available(iOS 16.0, *)
-    public func handleAutofill(anchor: ASPresentationAnchor) async {
-        self.anchor = anchor
-
-        await handleAutofill(presentationContextProvider: self)
+        #endif
     }
 
     /**
      Reinitializes internal state before starting a request.
      */
-    private func reset() -> Void {
-//        self.anchor = nil
+    internal func reset() -> Void {
         self.authenticatingUser = nil
-        if #available(iOS 16.0, *) {
-            cancelAutoFillAssistedPasskeySignIn()
+        cancelPendingRequest()
+    }
+
+    private func cancelPendingRequest() {
+        logger.debug("Canceling pending requests")
+        if authController != nil {
+            #if !os(tvOS)
+            if #available(iOS 16.0, macOS 13.0, visionOS 1.0, *) {
+                authController!.cancel()
+            }
+            #endif
+            authController = nil
         }
     }
 
-    /**
-     TODO: figure out how to cancel this request when modal begins
-     */
-    @available(iOS 16.0, *)
-    public func handleAutofill(presentationContextProvider: ASAuthorizationControllerPresentationContextProviding) async {
-        reset()
-        logger.debug("AF PCP start")
-        let parsed = await api.makeRequest(
-            path: "/auth/createOptions",
-            body: [:] as [String:String],
-            type: SACreateAuthOptionsResponse.self)!
 
-        let challenge = parsed.result.publicKey.challenge.toData()!
-        let provider = ASAuthorizationPlatformPublicKeyCredentialProvider(
-            relyingPartyIdentifier: parsed.result.publicKey.rpId)
-        let request = provider.createCredentialAssertionRequest(
-            challenge: challenge)
-
-
-        let controller = ASAuthorizationController(authorizationRequests: [request])
-        authController = controller
-        controller.delegate = self
-        controller.presentationContextProvider = presentationContextProvider
-        logger.debug("AF perform")
-        controller.performAutoFillAssistedRequests()
-    }
-
-    @available(iOS 16.0, *)
-    func cancelAutoFillAssistedPasskeySignIn() {
-        logger.debug("cancel AF")
-        if authController != nil {
-           authController!.cancel()
-           authController = nil
-         }
-    }
-    #endif
 
 
     public func startRegister(name: String, anchor: ASPresentationAnchor) async {
@@ -233,7 +197,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     }
 }
 
-@available(macOS 12.0, iOS 15.0, *)
+@available(macOS 12.0, iOS 15.0, visionOS 1.0, tvOS 16.0, *)
 extension SnapAuth: ASAuthorizationControllerDelegate {
 
     public func authorizationController(
@@ -394,7 +358,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
 }
 
 
-@available(macOS 12.0, iOS 15.0, *)
+@available(macOS 12.0, iOS 15.0, tvOS 16.0, visionOS 1.0, *)
 extension SnapAuth: ASAuthorizationControllerPresentationContextProviding {
     public func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
         logger.debug("presentation anchor")

@@ -58,16 +58,16 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
             logger: logger)
     }
 
-    public enum Providers {
-        /// Allow passkeys and hardware keys
-        case all
+    public enum KeyType {
+        /// Allow all available authenticator types to be used
+        public static let all: [KeyType] = [.passkey, .securityKey]
 
-        /// Only prompt for passkeys
-        case passkeyOnly
+        /// Prompt for passkeys
+        case passkey
 
         #if !os(tvOS) && !os(visionOS)
-        /// Only prompt for hardware keys. This will not work on all platforms.
-        case securityKeyOnly
+        /// Prompt for hardware keys. This is not available on all platforms
+        case securityKey
         #endif
     }
 
@@ -91,10 +91,12 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         }
     }
 
-
-
-
-    public func startRegister(name: String, anchor: ASPresentationAnchor) async {
+    public func startRegister(
+        name: String,
+        anchor: ASPresentationAnchor,
+        displayName: String? = nil,
+        keyTypes: [KeyType] = KeyType.all
+    ) async {
         reset()
         self.anchor = anchor
 
@@ -104,26 +106,15 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
             body: body,
             type: SACreateRegisterOptionsResponse.self)!
 
-        let challenge = options.result.publicKey.challenge.toData()!
 
-        // Passkeys
-        let provider = ASAuthorizationPlatformPublicKeyCredentialProvider(
-            relyingPartyIdentifier: options.result.publicKey.rp.id)
-        let request = provider.createCredentialRegistrationRequest(
-            challenge: challenge,
+        let authRequests = buildRegisterRequests(
+            from: options.result,
             name: name,
-            userID: options.result.publicKey.user.id.toData()!)
+            displayName: displayName,
+            keyTypes: keyTypes)
 
-        // Hardware keys
-        let hwProvider = ASAuthorizationSecurityKeyPublicKeyCredentialProvider(
-            relyingPartyIdentifier: options.result.publicKey.rp.id)
-        let hwRequest = hwProvider.createCredentialRegistrationRequest(
-            challenge: challenge,
-            displayName: name, name: name, userID: options.result.publicKey.user.id.toData()!)
-        hwRequest.attestationPreference = .direct // TODO: API
-        hwRequest.credentialParameters = [.init(algorithm: .ES256)] // TODO: API
 
-        let controller = ASAuthorizationController(authorizationRequests: [request, hwRequest])
+        let controller = ASAuthorizationController(authorizationRequests: authRequests)
         authController = controller
         controller.delegate = self
         controller.presentationContextProvider = self

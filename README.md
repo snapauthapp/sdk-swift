@@ -8,12 +8,12 @@ This SDK supports all major Apple platforms that support passkeys:
 
 Platform | Passkeys | Hardware Keys
 --- | --- |---
-iOS | Yes | Yes
-iPadOS | Yes | Yes
-macOS | Yes | Yes
-visionOS | Yes | No[^no-platform]
-tvOS | ⚠️[^platform-unested] | No[^no-platform]
-watchOS | No[^no-platform] | No[^no-platform]
+iOS | ✅ | ✅
+iPadOS | ✅ | ✅
+macOS | ✅ | ✅
+visionOS | ✅ | ❌[^no-platform]
+tvOS | ⚠️[^platform-untested] | ❌[^no-platform]
+watchOS | ❌[^no-platform] | ❌[^no-platform]
 
 ## Setup
 

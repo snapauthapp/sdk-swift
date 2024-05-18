@@ -34,10 +34,15 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         // ASAuthorizationController credential request failed with error: Error Domain=com.apple.AuthenticationServices.AuthorizationError Code=1004 "(null)"
 
         Task {
-            // Failure reason, etc, etc
-//            await delegate?.snapAuth(didAuthenticate: .failure)
-            // TODO: This needs to be aware of current flow (MAJOR)
-            await delegate?.snapAuth(didFinishAuthentication: .failure(.asAuthorizationError))
+            if (state == .authenticating) {
+                await delegate?.snapAuth(didFinishAuthentication: .failure(.asAuthorizationError))
+            } else if (state == .registering) {
+                await delegate?.snapAuth(didFinishRegistration: .failure(.asAuthorizationError))
+            } else if (state == .autofill) {
+                // Intentional no-op
+            }
+
+            state = .idle
         }
     }
 
@@ -171,7 +176,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         }
 
     }
-//
+// tvOS only? Probably not needed.
 //    public func authorizationController(_ controller: ASAuthorizationController, didCompleteWithCustomMethod method: ASAuthorizationCustomMethod) {
 //        if method == .other {
 //

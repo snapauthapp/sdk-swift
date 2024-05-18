@@ -52,8 +52,8 @@ struct SnapAuthClient {
             SAWrappedResponse<T>.self,
             from: data)
         else {
-            logger?.error("nope")
-            /// TODO: return some sort of failure SAResponse
+            logger?.error("Decoding request failed")
+            // TODO: return some sort of failure SAResponse
             return nil
         }
 

@@ -8,26 +8,28 @@ import AuthenticationServices
  */
 #if os(iOS) || os(visionOS)
 extension SnapAuth {
-    /**
-     Starts the AutoFill process using a default ASPresentationAnchor
-     */
+
+    /// Starts the AutoFill process using a default ASPresentationAnchor
     @available(iOS 16.0, *)
     public func handleAutoFill() async {
-        await handleAutoFill(anchor: ASPresentationAnchor())
+        await handleAutoFill(anchor: .default)
     }
 
+    /// Use the specified anchor. 
+    /// This may be exposed publiy if needed, but the intent/goal is the default is (almost) always correct
     @available(iOS 16.0, *)
-    public func handleAutoFill(anchor: ASPresentationAnchor) async {
+    internal func handleAutoFill(anchor: ASPresentationAnchor) async {
         self.anchor = anchor
 
         await handleAutoFill(presentationContextProvider: self)
     }
 
-
+    /// Use the specified presentationContextProvider.
+    /// Like with handleAutoFill(anchor:) this could get publicly exposed later but is for the "file a bug" case
     @available(iOS 16.0, *)
-    public func handleAutoFill(presentationContextProvider: ASAuthorizationControllerPresentationContextProviding) async {
+    internal func handleAutoFill(presentationContextProvider: ASAuthorizationControllerPresentationContextProviding) async {
         reset()
-        logger.debug("AF PCP start")
+        state = .autofill
         let parsed = await api.makeRequest(
             path: "/auth/createOptions",
             body: [:] as [String:String],

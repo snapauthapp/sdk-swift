@@ -38,14 +38,14 @@ Known issues:
 @available(macOS 12.0, iOS 15.0, tvOS 16.0, *)
 public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDelegate
 
+    /// The delegate that SnapAuth informs about the success or failure of an authorization attempt.
+    public var delegate: SnapAuthDelegate?
+
     internal let api: SnapAuthClient
 
     internal let logger: Logger
 
-    public var delegate: SnapAuthDelegate?
-
-    public var presentationContextProvider: ASAuthorizationControllerPresentationContextProviding?
-
+    internal var presentationContextProvider: ASAuthorizationControllerPresentationContextProviding?
 
     internal var anchor: ASPresentationAnchor?
 
@@ -62,6 +62,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
             logger: logger)
     }
 
+    /// An enumeration of WebAuthn authenticators that are permitted
     public enum KeyType {
 
         /// Prompt for passkeys
@@ -101,12 +102,25 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 
     public func startRegister(
         name: String,
+        displayName: String? = nil,
+        keyTypes: Set<KeyType> = KeyType.all
+    ) async {
+        await startRegister(
+            name: name,
+            anchor: .default,
+            displayName: displayName,
+            keyTypes: keyTypes)
+    }
+
+    public func startRegister(
+        name: String,
         anchor: ASPresentationAnchor,
         displayName: String? = nil,
         keyTypes: Set<KeyType> = KeyType.all
     ) async {
         reset()
         self.anchor = anchor
+        state = .registering
 
         let body = SACreateRegisterOptionsRequest(user: nil)
         let options = await api.makeRequest(
@@ -131,9 +145,15 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     }
 
     internal var authenticatingUser: SAUser?
-    /*
-     TODO: this should take a new UserInfo
-     */
+
+    /// Preferred method to start authentication
+    public func startAuth(
+        _ user: SAUser,
+        keyTypes: Set<KeyType> = KeyType.all
+    ) async {
+        await startAuth(user, anchor: .default, keyTypes: keyTypes)
+    }
+
     public func startAuth(
         _ user: SAUser,
         anchor: ASPresentationAnchor,
@@ -142,6 +162,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         reset()
         self.anchor = anchor
         self.authenticatingUser = user
+        state = .authenticating
 
         let body = ["user": user]
 
@@ -160,9 +181,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         // The UI should show the sheet to use a passkey or security key
         let controller = ASAuthorizationController(authorizationRequests: authRequests)
         authController = controller
-        logger.debug("setting delegate")
         controller.delegate = self
-        logger.debug("setting presentation context")
         controller.presentationContextProvider = self
         logger.debug("perform requests")
         controller.performRequests()
@@ -170,10 +189,18 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 
         // Sometimes the controller just WILL NOT CALL EITHER DELEGATE METHOD, so... yeah.
         // Maybe start a timer and auto-fail if neither delegate method runs in time?
-
     }
+
+    internal var state: State = .idle
 }
 
+/// An enumeration of SDK state, which enables sending appropriate failure messages back to delegates
+enum State {
+    case idle
+    case registering
+    case authenticating
+    case autofill
+}
 
 public enum SAUser {
     case id(String)

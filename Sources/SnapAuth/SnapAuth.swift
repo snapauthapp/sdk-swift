@@ -59,8 +59,6 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     }
 
     public enum KeyType {
-        /// Allow all available authenticator types to be used
-        public static let all: [KeyType] = [.passkey, .securityKey]
 
         /// Prompt for passkeys
         case passkey
@@ -68,6 +66,12 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         #if !os(tvOS) && !os(visionOS)
         /// Prompt for hardware keys. This is not available on all platforms
         case securityKey
+
+        /// Allow all available authenticator types to be used
+        public static let all: [KeyType] = [.passkey, .securityKey]
+        #else
+        /// Allow all available authenticator types to be used
+        public static let all: [KeyType] = [.passkey]
         #endif
     }
 

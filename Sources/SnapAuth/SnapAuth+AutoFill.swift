@@ -3,10 +3,10 @@ import AuthenticationServices
 /**
  Adds AutoFill passkey support.
 
- Due to platform limitations, this is only available on iOS.
+ Due to platform limitations, this is only available on iOS and visionOS.
  It is not (currently) supported on macOS, watchOS, tvOS, or Catalyst.
  */
-#if os(iOS)
+#if os(iOS) || os(visionOS)
 extension SnapAuth {
     /**
      Starts the AutoFill process using a default ASPresentationAnchor

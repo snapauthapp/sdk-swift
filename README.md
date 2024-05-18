@@ -45,7 +45,6 @@ More info:
 
 - https://developer.apple.com/documentation/xcode/supporting-associated-domains
 - https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_developer_associated-domains
--
 
 In XCode, select your root-level project in the Navigator.
 
@@ -80,7 +79,7 @@ Create the assoication file (or, if you already have one for other capabilities,
 
 This file must be served at `https://yourdomain.tld/.well-known/apple-app-site-association`.
 
-`curl https://yourdomain.tld/.well-known/apple-app-site-association`
+`curl https://yourdomain.tld/.well-known/apple-app-site-association` to test it.
 
 #### Optional: enable SWC Developer Mode
 

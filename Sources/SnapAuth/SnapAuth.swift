@@ -62,14 +62,13 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
             logger: logger)
     }
 
-    /// An enumeration of WebAuthn authenticators that are permitted
+    /// Permitted authenticator types
     public enum KeyType {
-
-        /// Prompt for passkeys
+        /// Prompt for passkeys.
         case passkey
 
         #if HARDWARE_KEY_SUPPORT
-        /// Prompt for hardware keys. This is not available on all platforms
+        /// Prompt for hardware keys. This is not available on all platforms.
         case securityKey
 
         /// Allow all available authenticator types to be used
@@ -80,9 +79,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         #endif
     }
 
-    /**
-     Reinitializes internal state before starting a request.
-     */
+    /// Reinitializes internal state before starting a request.
     internal func reset() -> Void {
         self.authenticatingUser = nil
         cancelPendingRequest()
@@ -100,6 +97,12 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         }
     }
 
+    /// Starts the passkey enrollment process.
+    /// - Parameters:
+    ///   - name: The name of the user.
+    ///   - displayName: The proper name of the user. If omitted, name will be used.
+    ///   - keyTypes: What authenticators should be permitted. If omitted, 
+    ///   all available types for the platform will be allowed.
     public func startRegister(
         name: String,
         displayName: String? = nil,
@@ -112,7 +115,8 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
             keyTypes: keyTypes)
     }
 
-    public func startRegister(
+    // TODO: Only make this public if needed?
+    internal func startRegister(
         name: String,
         anchor: ASPresentationAnchor,
         displayName: String? = nil,
@@ -146,7 +150,11 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 
     internal var authenticatingUser: SAUser?
 
-    /// Preferred method to start authentication
+    /// Starts the authentication process.
+    ///
+    /// - Parameters:
+    ///   - user: The authenticating user's `id` or `handle`
+    ///   - keyTypes: What authenticators should be permitted. If omitted, all available types for the platform will be allowed.
     public func startAuth(
         _ user: SAUser,
         keyTypes: Set<KeyType> = KeyType.all
@@ -154,7 +162,8 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         await startAuth(user, anchor: .default, keyTypes: keyTypes)
     }
 
-    public func startAuth(
+    ///
+    internal func startAuth(
         _ user: SAUser,
         anchor: ASPresentationAnchor,
         keyTypes: Set<KeyType> = KeyType.all
@@ -194,7 +203,10 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     internal var state: State = .idle
 }
 
-/// An enumeration of SDK state, which enables sending appropriate failure messages back to delegates
+/// SDK state
+///
+/// This helps with sending appropriate failure messages back to delegates,
+/// since all AS delegate failure paths go to a single place.
 enum State {
     case idle
     case registering
@@ -203,12 +215,13 @@ enum State {
 }
 
 public enum SAUser {
+    /// Your application's internal identifier for the user (usually a primary key)
     case id(String)
+    /// The user's handle, such as a username or email address
     case handle(String)
 }
-/**
- Encode to either `{"id": id}` or `{"handle": handle}`
- */
+
+/// Encode as JSON to either `{"id": id}` or `{"handle": handle}`, which is what the SnapAuth APIs need
 extension SAUser: Encodable {
     enum CodingKeys: String, CodingKey {
          case id

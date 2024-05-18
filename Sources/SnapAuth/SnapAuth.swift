@@ -9,13 +9,13 @@ import Foundation
 import os // logger
 import AuthenticationServices
 
-/**
+/*
  Resources:
  - https://developer.apple.com/videos/play/wwdc2021/10106/
  - https://developer.apple.com/videos/play/wwdc2022/10092/
  */
 
-/**
+/*
  Related setup for SnapAuth:
 
  The app MUST have an Associated Domains entitlement configured
@@ -35,6 +35,11 @@ Known issues:
  - autofill will not start
 
  */
+
+/// The SnapAuth SDK.
+///
+/// This is used to start the passkey registration and authentication processes,
+/// typically in the `action` of a `Button`
 @available(macOS 12.0, iOS 15.0, tvOS 16.0, *)
 public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDelegate
 
@@ -51,6 +56,11 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 
     internal var authController: ASAuthorizationController?
 
+    /// - Parameters:
+    ///   - publishableKey: Your SnapAuth publishable key. This can be obtained
+    ///   from the [SnapAuth dashboard](https://dashboard.snapauth.app)
+    ///   - urlBase: A custom URL base for the SnapAuth API. This is generally
+    ///   for internal use.
     public init(
        publishableKey: String,
        urlBase: URL = URL(string: "https://api.snapauth.app")!
@@ -98,11 +108,14 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     }
 
     /// Starts the passkey enrollment process.
+    /// Upon completion, the delegate will be called with either success or failure.
     /// - Parameters:
     ///   - name: The name of the user.
     ///   - displayName: The proper name of the user. If omitted, name will be used.
     ///   - keyTypes: What authenticators should be permitted. If omitted, 
     ///   all available types for the platform will be allowed.
+    ///
+    /// - Returns: Nothing. Instead, the `SnapAuthDelegate` will be informed of the result.
     public func startRegister(
         name: String,
         displayName: String? = nil,
@@ -151,10 +164,13 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     internal var authenticatingUser: SAUser?
 
     /// Starts the authentication process.
+    /// Upon completion, the delegate will be called with either success or failure.
     ///
     /// - Parameters:
     ///   - user: The authenticating user's `id` or `handle`
     ///   - keyTypes: What authenticators should be permitted. If omitted, all available types for the platform will be allowed.
+    ///
+    /// - Returns: Nothing. Instead, the `SnapAuthDelegate` will be informed of the result.
     public func startAuth(
         _ user: SAUser,
         keyTypes: Set<KeyType> = KeyType.all
@@ -162,7 +178,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         await startAuth(user, anchor: .default, keyTypes: keyTypes)
     }
 
-    ///
+    /// This may be exposed publicly if the default anchor proves insufficient
     internal func startAuth(
         _ user: SAUser,
         anchor: ASPresentationAnchor,

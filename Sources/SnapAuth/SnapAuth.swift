@@ -169,6 +169,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     }
 }
 
+// MARK: ASAuthConDel
 @available(macOS 12.0, iOS 15.0, visionOS 1.0, tvOS 16.0, *)
 extension SnapAuth: ASAuthorizationControllerDelegate {
 
@@ -182,6 +183,13 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
 
 
             logger.error("ASACD \(asError.errorCode)")
+            // 1001 = no credentials available
+//        case unknown = 1000
+//        case canceled = 1001
+//        case invalidResponse = 1002
+//        case notHandled = 1003
+//        case failed = 1004
+//        case notInteractive = 1005
         }
         logger.error("ASACD fail: \(error)")
         // (lldb) po error
@@ -195,6 +203,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         Task {
             // Failure reason, etc, etc
 //            await delegate?.snapAuth(didAuthenticate: .failure)
+            // TODO: This needs to be aware of current flow (MAJOR)
             await delegate?.snapAuth(didFinishAuthentication: .failure(.asAuthorizationError))
         }
     }
@@ -211,22 +220,24 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
 
 
         switch authorization.credential {
-        case is ASAuthorizationSecurityKeyPublicKeyCredentialAssertion:
-            logger.debug("switch hardware key assn")
-            handleAssertion(authorization.credential as! ASAuthorizationSecurityKeyPublicKeyCredentialAssertion)
         case is ASAuthorizationPlatformPublicKeyCredentialAssertion:
             logger.debug("switch passkey assn")
             handleAssertion(authorization.credential as! ASAuthorizationPlatformPublicKeyCredentialAssertion)
         case is ASAuthorizationPlatformPublicKeyCredentialRegistration:
             logger.debug("switch passkey registration")
             handleRegistration(authorization.credential as! ASAuthorizationPlatformPublicKeyCredentialRegistration)
+#if HARDWARE_KEY_SUPPORT
         case is ASAuthorizationSecurityKeyPublicKeyCredentialRegistration:
             logger.debug("switch hardware key registration")
             handleRegistration(authorization.credential as! ASAuthorizationSecurityKeyPublicKeyCredentialRegistration)
+        case is ASAuthorizationSecurityKeyPublicKeyCredentialAssertion:
+            logger.debug("switch hardware key assn")
+            handleAssertion(authorization.credential as! ASAuthorizationSecurityKeyPublicKeyCredentialAssertion)
+#endif
         default:
+            // TODO: Handle this properly
             logger.error("uhh")
         }
-        /// TODO: registration support in here as well - ASAuthorization uses the same callback
     }
 
     private func handleRegistration(
@@ -329,7 +340,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
     }
 }
 
-
+// MARK: ASAuthConPresConProv
 @available(macOS 12.0, iOS 15.0, tvOS 16.0, visionOS 1.0, *)
 extension SnapAuth: ASAuthorizationControllerPresentationContextProviding {
     public func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {

@@ -8,7 +8,7 @@
 import AuthenticationServices
 
 //import Foundation
-
+@available(macOS 12.0, iOS 15.0, tvOS 16.0, *)
 extension SnapAuth {
     internal func buildRegisterRequests(
         from options: SACreateRegisterOptionsResponse,
@@ -47,6 +47,10 @@ extension SnapAuth {
         }
 #endif
 
+        #if os(tvOS)
+        requests.append(ASAuthorizationPasswordProvider().createRequest())
+//        requests.append(ASAuthorizationCustomMethod.other)
+        #endif
         return requests
     }
 
@@ -89,7 +93,11 @@ extension SnapAuth {
             requests.append(request)
         }
 #endif
-
+#if os(tvOS)
+        return [ASAuthorizationPasswordProvider().createRequest()]
+//requests.append(ASAuthorizationPasswordProvider().createRequest())
+//        requests.append(ASAuthorizationCustomMethod.other)
+#endif
         return requests
     }
 }

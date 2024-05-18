@@ -13,3 +13,7 @@ let defaultPresentationAnchor: ASPresentationAnchor = NSApplication.shared.mainW
 #else
 let defaultPresentationAnchor: ASPresentationAnchor = (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.windows.first?.rootViewController?.view.window ?? ASPresentationAnchor()
 #endif
+
+extension ASPresentationAnchor {
+    static let `default` = defaultPresentationAnchor
+}

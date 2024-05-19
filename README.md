@@ -70,15 +70,13 @@ This should match the `RP ID` from the SnapAuth dashboard.
 
 ### Publish the domain association file
 
-Get your App ID from the Apple Developer portal.
-
 Create the assoication file (or, if you already have one for other capabilities, add this section):
 
 ```json
 {
   "webcredentials": {
     "apps": [
-      "your app id"
+      "your App ID"
     ]
   }
 }
@@ -87,6 +85,22 @@ Create the assoication file (or, if you already have one for other capabilities,
 This file must be served at `https://yourdomain.tld/.well-known/apple-app-site-association`.
 
 `curl https://yourdomain.tld/.well-known/apple-app-site-association` to test it.
+
+#### Your App ID
+
+Your App ID can be obtained from the Apple developer portal(s):
+
+https://developer.apple.com/account/resources/identifiers/list > Select your app
+
+or
+
+https://developer.apple.com/account#MembershipDetailsCard > Look for Team ID, and
+
+XCode > Your app (the root-level object in Navigator) > Targets > (pick one) > General, look for Bundle Identifier
+
+The App ID is the combination of the Team ID (typically 10 characters) and the Bundle ID (typically configured in-app, frequently in reverse-DNS format): `TeamID.BundleID`
+
+This will result in something like `A5B4C3D2E1.tld.yourdomain.YourAppName`
 
 #### Optional: enable SWC Developer Mode
 

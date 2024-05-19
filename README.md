@@ -86,6 +86,10 @@ This file must be served at `https://yourdomain.tld/.well-known/apple-app-site-a
 
 `curl https://yourdomain.tld/.well-known/apple-app-site-association` to test it.
 
+> [!CAUTION]
+> If you already have a Domain Association file, be sure only to append or merge this change.
+> Do not replace other content in the file, which could lead to breaking other app functionality!
+
 #### Your App ID
 
 Your App ID can be obtained from the Apple developer portal(s):

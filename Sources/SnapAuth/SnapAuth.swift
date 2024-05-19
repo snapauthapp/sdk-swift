@@ -2,33 +2,6 @@ import AuthenticationServices
 import Foundation
 import os
 
-/*
- Resources:
- - https://developer.apple.com/videos/play/wwdc2021/10106/
- - https://developer.apple.com/videos/play/wwdc2022/10092/
- */
-
-/*
- Related setup for SnapAuth:
-
- The app MUST have an Associated Domains entitlement configured
- 1) add `webcredentials:yourrpid.com` into the list
-    1) This must match the RP ID displayed on SnapAuth for your API key
-    2) You MAY amend `?mode=developer` to the value. If so, you MUST turn on SWC Developer Mode: `sudo swcutil developer-mode -e 1` (https://forums.developer.apple.com/forums/thread/743890)
- 2) Associated Domains only works with a paid developer account, and possibly only one on a team (with DUNS number, etc.)
-  It is restricted from use on free accounts, which is outside of our control
- 3) The domain must have a corresponding Associated Domains file: https://developer.apple.com/documentation/xcode/supporting-associated-domains
-    1) https://yourdomain.com/.well-known/apple-app-site-association must exist
-    2) It must serve valid JSON with association data
-    3) `.webcredentials.apps.[]` must exist and contain your app identifier (you may need to go into the developer portal to get this. It may contain multiple apps
-
-
-Known issues:
- - tvOS will not present any dialog, full stop
- - autofill will not start
-
- */
-
 /// The SnapAuth SDK.
 ///
 /// This is used to start the passkey registration and authentication processes,

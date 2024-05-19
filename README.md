@@ -32,16 +32,9 @@ watchOS | ❌[^no-watch] | ❌[^no-watch]
 
 If you haven't already registered for SnapAuth, do so: https://www.snapauth.app/register
 
-Unlike for web integrations, `localhost` generally does not work on Apple native apps.
-
-You should immediately create a non-local environment to test with, if you haven't already done so.
-Starting with a testing or staging server is a good place to start.
-
-<!--
-The `RP ID` from the dashbard _must_ exactly match the Associated Domains configuration below
-
-(This needs to be verified - the AD is what'll get checked for the file, but a subdomain match on the RP ID might be ok)
--->
+Unlike for web integrations, `localhost` generally does not work nicely on Apple native apps.
+It should be possbile, but unlike on web must still use `https` which local environments don't always support well.
+Starting with a testing or staging server is often an easier place to start.
 
 ### Add the Associated Domains capability
 
@@ -61,14 +54,19 @@ Select your Target, and navigate to the Signing & Capabilities tab.
 
 Click `+ Capability` and select `Associated Domains`
 
-> [!NOTE]
+> [!WARNING]
 > This capability is restricted on free Apple Developer accounts.
 > Unfortunately, this means you must have a current, paid account to proceed.
+
+<!-- Also, personal accounts might not work? -->
 
 In the new Associated Domains section, click `+` and add your domain(s):
 
 `webcredentials:yourdomain.tld`
 
+This should match the `RP ID` from the SnapAuth dashboard.
+
+<!-- Must match exactly? Registrable domain match? -->
 
 ### Publish the domain association file
 
@@ -122,6 +120,8 @@ In the add package dialog, search for our SDK:
 
 Select a Dependency Rule and add it to your development target.
 We recommend "Dependency Rule: Up to Next Major Version".
+
+We follow Semantic Versioning with all of our SDKs, so this should always be a safe option.
 
 ### Import the SDK
 
@@ -192,10 +192,19 @@ extension SignInView: SnapAuthDelegate {
 }
 ```
 
+## Known issues
+
+In our testing, the sign in dialog in tvOS doesn't open, at least in the simulator.
+
+Even with the Apple-documented configuration, the AutoFill API does not reliably provide passkey suggestions.
+
 ## Useful resources
 
- - https://developer.apple.com/videos/play/wwdc2021/10106/
- - https://developer.apple.com/videos/play/wwdc2022/10092/
+ - [WWDC21: Move beyond passwords](https://developer.apple.com/videos/play/wwdc2021/10106/)
+ - [WWDC22: Meet passkeys](https://developer.apple.com/videos/play/wwdc2022/10092/)
+ - [Supporting associated domains](https://developer.apple.com/documentation/xcode/supporting-associated-domains)
+ - [Associated domains entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_developer_associated-domains)
+ - https://forums.developer.apple.com/forums/thread/743890
 
 ## License
 

@@ -46,8 +46,6 @@ extension SnapAuth {
         from options: SACreateAuthOptionsResponse,
         keyTypes: Set<SnapAuth.KeyType>
     ) -> [ASAuthorizationRequest] {
-        // https://developer.apple.com/videos/play/wwdc2022/10092/ ~ 12:05
-
         let challenge = options.publicKey.challenge.toData()!
 
         var requests: [ASAuthorizationRequest] = []

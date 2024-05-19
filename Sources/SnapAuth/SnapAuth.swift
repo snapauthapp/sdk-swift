@@ -40,19 +40,16 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     }
 
     /// Permitted authenticator types
-    public enum Authenticator {
+    public enum Authenticator: CaseIterable {
+        /// Allow all available authenticator types to be used
+        public static let all = Set(Authenticator.allCases)
+
         /// Prompt for passkeys.
         case passkey
 
         #if HARDWARE_KEY_SUPPORT
         /// Prompt for hardware keys. This is not available on all platforms.
         case securityKey
-
-        /// Allow all available authenticator types to be used
-        public static let all: Set<Authenticator> = [.passkey, .securityKey]
-        #else
-        /// Allow all available authenticator types to be used
-        public static let all: Set<Authenticator> = [.passkey]
         #endif
     }
 

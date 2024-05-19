@@ -20,6 +20,7 @@ Platform | Passkeys | Hardware Keys
 iOS | ✅ 15.0+ | ✅[^usb-hardware-varies] 15.0+
 iPadOS | ✅ 15.0+ | ✅[^usb-hardware-varies] 15.0+
 macOS | ✅ 12.0+ | ✅ 12.0+
+macOS (Catalyst) | ⚠️[^platform-untested] | ⚠️[^platform-untested]
 visionOS | ✅ 1.0+ | ❌[^no-usb]
 tvOS | ⚠️[^platform-untested] 16.0+ | ❌[^no-usb]
 watchOS | ❌[^no-watch] | ❌[^no-watch]
@@ -40,7 +41,7 @@ Starting with a testing or staging server is often an easier place to start.
 
 > [!TIP]
 > You may have already done this if your existing app supports password autofill.
-> 
+>
 > Still, fully review this section!
 
 More info:

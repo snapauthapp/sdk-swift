@@ -1,6 +1,15 @@
 # SnapAuth Swift SDK
 
-This is the official Swift SDK for [SnapAuth](https://www.snapauth.app).
+This is the official Swift SDK for [SnapAuth](https://www.snapauth.app?utm_source=GitHub&utm_campaign=sdk&utm_content=sdk-swift).
+
+🚧 This SDK is in beta! 🚧
+
+![GitHub License](https://img.shields.io/github/license/snapauthapp/sdk-typescript)
+
+- [SnapAuth Homepage](https://www.snapauth.app?utm_source=GitHub&utm_campaign=sdk&utm_content=sdk-swift)
+- [Docs](https://docs.snapauth.app)
+- [Dashboard](https://dashboard.snapauth.app)
+- [Github](https://github.com/snapauthapp/sdk-swift)
 
 ## Platform Support
 
@@ -182,6 +191,15 @@ extension SignInView: SnapAuthDelegate {
   // delegate methods described above
 }
 ```
+
+## Useful resources
+
+ - https://developer.apple.com/videos/play/wwdc2021/10106/
+ - https://developer.apple.com/videos/play/wwdc2022/10092/
+
+## License
+
+BSD-3-Clause
 
 [^no-watch]: Passkeys are not supported on Apple Watch
 [^no-usb]: Unsupported by Apple (no USB port!)

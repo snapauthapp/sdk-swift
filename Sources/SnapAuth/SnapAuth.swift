@@ -125,7 +125,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         controller.performRequests()
     }
 
-    internal var authenticatingUser: SAUser?
+    internal var authenticatingUser: AuthenticatingUser?
 
     /// Starts the authentication process.
     /// Upon completion, the delegate will be called with either success or failure.
@@ -136,7 +136,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     ///
     /// - Returns: Nothing. Instead, the `SnapAuthDelegate` will be informed of the result.
     public func startAuth(
-        _ user: SAUser,
+        _ user: AuthenticatingUser,
         authenticators: Set<Authenticator> = Authenticator.all
     ) async {
         await startAuth(user, anchor: .default, authenticators: authenticators)
@@ -144,7 +144,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 
     /// This may be exposed publicly if the default anchor proves insufficient
     internal func startAuth(
-        _ user: SAUser,
+        _ user: AuthenticatingUser,
         anchor: ASPresentationAnchor,
         authenticators: Set<Authenticator> = Authenticator.all
     ) async {
@@ -196,7 +196,7 @@ enum State {
     case autofill
 }
 
-public enum SAUser {
+public enum AuthenticatingUser {
     /// Your application's internal identifier for the user (usually a primary key)
     case id(String)
     /// The user's handle, such as a username or email address
@@ -204,7 +204,7 @@ public enum SAUser {
 }
 
 /// Encode as JSON to either `{"id": id}` or `{"handle": handle}`, which is what the SnapAuth APIs need
-extension SAUser: Encodable {
+extension AuthenticatingUser: Encodable {
     enum CodingKeys: String, CodingKey {
          case id
          case handle

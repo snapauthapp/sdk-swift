@@ -8,7 +8,7 @@ struct SAWrappedResponse<T>: Decodable where T: Decodable {
 }
 
 struct SACreateRegisterOptionsRequest: Encodable {
-    let user: SAUser?
+    let user: AuthenticatingUser?
 }
 struct SACreateRegisterOptionsResponse: Decodable {
     let publicKey: PublicKeyOptions
@@ -105,7 +105,7 @@ struct SACreateAuthOptionsResponse: Decodable {
 struct SAProcessAuthRequest: Encodable {
     // user ~ id/handle (skip for now since this is passkey only flow...ish)
     let credential: SACredential
-    let user: SAUser?
+    let user: AuthenticatingUser?
     struct SACredential: Codable {
         let type: String = "public-key"
         let rawId: Base64URL

@@ -118,7 +118,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
                 type: SAProcessAuthResponse.self)
             if tokenResponse == nil {
                 logger.debug("no/invalid process response")
-                /// TODO: delegate failure (network error?)
+                // TODO: delegate failure (network error?)
                 return
             }
             logger.debug("got token response")
@@ -164,7 +164,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
                 type: SAProcessAuthResponse.self)
             if tokenResponse == nil {
                 logger.debug("no/invalid process response")
-                /// TODO: delegate failure (network error?)
+                // TODO: delegate failure (network error?)
                 return
             }
             logger.debug("got token response")

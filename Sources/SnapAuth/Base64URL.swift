@@ -5,7 +5,7 @@ struct Base64URL: Codable {
     private var base64URLString: String
 
     /// Allows for direct decoding of Base64URL values from e.g. JSON
-    public init(from decoder: Decoder) throws {
+    init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         base64URLString = try container.decode(String.self)
     }
@@ -19,7 +19,7 @@ struct Base64URL: Codable {
     }
 
     /// Allows direct encoding into a Base64URL string to e.g. JSON
-    public func encode(to encoder: Encoder) throws {
+    func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         try container.encode(base64URLString)
     }

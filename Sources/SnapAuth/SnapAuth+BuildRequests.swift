@@ -54,13 +54,16 @@ extension SnapAuth {
             let provider = ASAuthorizationPlatformPublicKeyCredentialProvider(
                 relyingPartyIdentifier: options.publicKey.rpId)
 
-            /// Process the `allowedCredentials` so the authenticator knows what it can use
-            let allowed = options.publicKey.allowCredentials!.map {
+            // Process the `allowedCredentials` so the authenticator knows what
+            // it can use. API responses omit this for AutoFill requests.
+            let allowed = options.publicKey.allowCredentials?.map {
                 ASAuthorizationPlatformPublicKeyCredentialDescriptor(credentialID: $0.id.toData()!)
             }
 
             let request = provider.createCredentialAssertionRequest(challenge: challenge)
-            request.allowedCredentials = allowed
+            if allowed != nil {
+                request.allowedCredentials = allowed!
+            }
             requests.append(request)
         }
 

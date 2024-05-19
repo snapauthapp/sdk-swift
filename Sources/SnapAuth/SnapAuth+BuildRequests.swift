@@ -6,13 +6,13 @@ extension SnapAuth {
         from options: SACreateRegisterOptionsResponse,
         name: String,
         displayName: String?,
-        keyTypes: Set<SnapAuth.KeyType>
+        authenticators: Set<SnapAuth.Authenticator>
     ) -> [ASAuthorizationRequest] {
         let challenge = options.publicKey.challenge.toData()!
 
         var requests: [ASAuthorizationRequest] = []
 
-        if keyTypes.contains(.passkey) {
+        if authenticators.contains(.passkey) {
             let provider = ASAuthorizationPlatformPublicKeyCredentialProvider(
                 relyingPartyIdentifier: options.publicKey.rp.id)
             let request = provider.createCredentialRegistrationRequest(
@@ -24,7 +24,7 @@ extension SnapAuth {
         }
 
 #if HARDWARE_KEY_SUPPORT
-        if keyTypes.contains(.securityKey) {
+        if authenticators.contains(.securityKey) {
             let provider = ASAuthorizationSecurityKeyPublicKeyCredentialProvider(
                 relyingPartyIdentifier: options.publicKey.rp.id)
             let request = provider.createCredentialRegistrationRequest(
@@ -44,13 +44,13 @@ extension SnapAuth {
 
     internal func buildAuthRequests(
         from options: SACreateAuthOptionsResponse,
-        keyTypes: Set<SnapAuth.KeyType>
+        authenticators: Set<SnapAuth.Authenticator>
     ) -> [ASAuthorizationRequest] {
         let challenge = options.publicKey.challenge.toData()!
 
         var requests: [ASAuthorizationRequest] = []
 
-        if keyTypes.contains(.passkey) {
+        if authenticators.contains(.passkey) {
             let provider = ASAuthorizationPlatformPublicKeyCredentialProvider(
                 relyingPartyIdentifier: options.publicKey.rpId)
 
@@ -65,7 +65,7 @@ extension SnapAuth {
         }
 
 #if HARDWARE_KEY_SUPPORT
-        if keyTypes.contains(.securityKey) {
+        if authenticators.contains(.securityKey) {
 
             let provider = ASAuthorizationSecurityKeyPublicKeyCredentialProvider(
                 relyingPartyIdentifier: options.publicKey.rpId)

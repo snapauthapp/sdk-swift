@@ -27,7 +27,9 @@ extension SnapAuth {
     /// Use the specified presentationContextProvider.
     /// Like with handleAutoFill(anchor:) this could get publicly exposed later but is for the "file a bug" case
     @available(iOS 16.0, *)
-    internal func handleAutoFill(presentationContextProvider: ASAuthorizationControllerPresentationContextProviding) async {
+    internal func handleAutoFill(
+        presentationContextProvider: ASAuthorizationControllerPresentationContextProviding
+    ) async {
         reset()
         state = .autofill
         let parsed = await api.makeRequest(
@@ -35,7 +37,10 @@ extension SnapAuth {
             body: [:] as [String:String],
             type: SACreateAuthOptionsResponse.self)!
 
-        let authRequests = buildAuthRequests(from: parsed.result, keyTypes: [.passkey])
+        // AutoFill always only uses passkeys, so this is not configurable
+        let authRequests = buildAuthRequests(
+            from: parsed.result,
+            authenticators: [.passkey])
 
         let controller = ASAuthorizationController(authorizationRequests: authRequests)
         authController = controller

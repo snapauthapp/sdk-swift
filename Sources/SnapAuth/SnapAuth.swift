@@ -40,7 +40,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     }
 
     /// Permitted authenticator types
-    public enum KeyType {
+    public enum Authenticator {
         /// Prompt for passkeys.
         case passkey
 
@@ -49,10 +49,10 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         case securityKey
 
         /// Allow all available authenticator types to be used
-        public static let all: Set<KeyType> = [.passkey, .securityKey]
+        public static let all: Set<Authenticator> = [.passkey, .securityKey]
         #else
         /// Allow all available authenticator types to be used
-        public static let all: Set<KeyType> = [.passkey]
+        public static let all: Set<Authenticator> = [.passkey]
         #endif
     }
 
@@ -79,20 +79,20 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     /// - Parameters:
     ///   - name: The name of the user.
     ///   - displayName: The proper name of the user. If omitted, name will be used.
-    ///   - keyTypes: What authenticators should be permitted. If omitted,
+    ///   - authenticators: What authenticators should be permitted. If omitted,
     ///   all available types for the platform will be allowed.
     ///
     /// - Returns: Nothing. Instead, the `SnapAuthDelegate` will be informed of the result.
     public func startRegister(
         name: String,
         displayName: String? = nil,
-        keyTypes: Set<KeyType> = KeyType.all
+        authenticators: Set<Authenticator> = Authenticator.all
     ) async {
         await startRegister(
             name: name,
             anchor: .default,
             displayName: displayName,
-            keyTypes: keyTypes)
+            authenticators: authenticators)
     }
 
     // TODO: Only make this public if needed?
@@ -100,7 +100,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         name: String,
         anchor: ASPresentationAnchor,
         displayName: String? = nil,
-        keyTypes: Set<KeyType> = KeyType.all
+        authenticators: Set<Authenticator> = Authenticator.all
     ) async {
         reset()
         self.anchor = anchor
@@ -117,7 +117,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
             from: options.result,
             name: name,
             displayName: displayName,
-            keyTypes: keyTypes)
+            authenticators: authenticators)
 
 
         let controller = ASAuthorizationController(authorizationRequests: authRequests)
@@ -135,21 +135,21 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     ///
     /// - Parameters:
     ///   - user: The authenticating user's `id` or `handle`
-    ///   - keyTypes: What authenticators should be permitted. If omitted, all available types for the platform will be allowed.
+    ///   - authenticators: What authenticators should be permitted. If omitted, all available types for the platform will be allowed.
     ///
     /// - Returns: Nothing. Instead, the `SnapAuthDelegate` will be informed of the result.
     public func startAuth(
         _ user: SAUser,
-        keyTypes: Set<KeyType> = KeyType.all
+        authenticators: Set<Authenticator> = Authenticator.all
     ) async {
-        await startAuth(user, anchor: .default, keyTypes: keyTypes)
+        await startAuth(user, anchor: .default, authenticators: authenticators)
     }
 
     /// This may be exposed publicly if the default anchor proves insufficient
     internal func startAuth(
         _ user: SAUser,
         anchor: ASPresentationAnchor,
-        keyTypes: Set<KeyType> = KeyType.all
+        authenticators: Set<Authenticator> = Authenticator.all
     ) async {
         reset()
         self.anchor = anchor
@@ -167,7 +167,9 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         logger.debug("before controller")
 
 
-        let authRequests = buildAuthRequests(from: parsed.result, keyTypes: keyTypes)
+        let authRequests = buildAuthRequests(
+            from: parsed.result,
+            authenticators: authenticators)
 
         // Set up the native controller and start the request(s).
         // The UI should show the sheet to use a passkey or security key

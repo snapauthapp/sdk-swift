@@ -37,9 +37,15 @@ extension SnapAuth {
             body: [:] as [String:String],
             type: SACreateAuthOptionsResponse.self)!
 
+        guard parsed.result != nil else {
+            logger.error("no result for AF")
+            // TODO: bubble this up
+            return
+        }
+
         // AutoFill always only uses passkeys, so this is not configurable
         let authRequests = buildAuthRequests(
-            from: parsed.result,
+            from: parsed.result!,
             authenticators: [.passkey])
 
         let controller = ASAuthorizationController(authorizationRequests: authRequests)

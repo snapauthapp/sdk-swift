@@ -116,15 +116,19 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
                 path: "/registration/process",
                 body: body,
                 type: SAProcessAuthResponse.self)
-            if tokenResponse == nil {
+            guard tokenResponse != nil else {
                 logger.debug("no/invalid process response")
                 // TODO: delegate failure (network error?)
                 return
             }
+            guard tokenResponse!.result != nil else {
+                // TODO: bubble this up
+                return
+            }
             logger.debug("got token response")
             let rewrapped = SnapAuthTokenInfo(
-                token: tokenResponse!.result.token,
-                expiresAt: tokenResponse!.result.expiresAt)
+                token: tokenResponse!.result!.token,
+                expiresAt: tokenResponse!.result!.expiresAt)
 
             await delegate?.snapAuth(didFinishRegistration: .success(rewrapped))
         }
@@ -162,15 +166,19 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
                 path: "/auth/process",
                 body: body,
                 type: SAProcessAuthResponse.self)
-            if tokenResponse == nil {
+            guard tokenResponse != nil else {
                 logger.debug("no/invalid process response")
                 // TODO: delegate failure (network error?)
                 return
             }
+            guard tokenResponse!.result != nil else {
+                // TODO: bubble this up
+                return
+            }
             logger.debug("got token response")
             let rewrapped = SnapAuthTokenInfo(
-                token: tokenResponse!.result.token,
-                expiresAt: tokenResponse!.result.expiresAt)
+                token: tokenResponse!.result!.token,
+                expiresAt: tokenResponse!.result!.expiresAt)
 
             await delegate?.snapAuth(didFinishAuthentication: .success(rewrapped))
         }

@@ -109,9 +109,13 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
             body: body,
             type: SACreateRegisterOptionsResponse.self)!
 
+        guard options.result != nil else {
+            // TODO: bubble error
+            return
+        }
 
         let authRequests = buildRegisterRequests(
-            from: options.result,
+            from: options.result!,
             name: name,
             displayName: displayName,
             authenticators: authenticators)
@@ -161,11 +165,14 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
             type: SACreateAuthOptionsResponse.self)!
 
 
+        guard parsed.result != nil else {
+            // TODO: bubble error
+            return
+        }
+
         logger.debug("before controller")
-
-
         let authRequests = buildAuthRequests(
-            from: parsed.result,
+            from: parsed.result!,
             authenticators: authenticators)
 
         // Set up the native controller and start the request(s).

@@ -104,18 +104,18 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         state = .registering
 
         let body = SACreateRegisterOptionsRequest(user: nil)
-        let options = await api.makeRequest(
+        let response = await api.makeRequest(
             path: "/registration/createOptions",
             body: body,
-            type: SACreateRegisterOptionsResponse.self)!
+            type: SACreateRegisterOptionsResponse.self)
 
-        guard options.result != nil else {
+        guard case let .success(options) = response else {
             // TODO: bubble error
             return
         }
 
         let authRequests = buildRegisterRequests(
-            from: options.result!,
+            from: options,
             name: name,
             displayName: displayName,
             authenticators: authenticators)
@@ -159,20 +159,20 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 
         let body = ["user": user]
 
-        let parsed = await api.makeRequest(
+        let response = await api.makeRequest(
             path: "/auth/createOptions",
             body: body,
-            type: SACreateAuthOptionsResponse.self)!
+            type: SACreateAuthOptionsResponse.self)
 
 
-        guard parsed.result != nil else {
+        guard case let .success(options) = response else {
             // TODO: bubble error
             return
         }
 
         logger.debug("before controller")
         let authRequests = buildAuthRequests(
-            from: parsed.result!,
+            from: options,
             authenticators: authenticators)
 
         // Set up the native controller and start the request(s).

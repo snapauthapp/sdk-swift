@@ -112,23 +112,19 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         let body = SAProcessRegisterRequest(credential: credential)
 
         Task {
-            let tokenResponse = await api.makeRequest(
+            let response = await api.makeRequest(
                 path: "/registration/process",
                 body: body,
                 type: SAProcessAuthResponse.self)
-            guard tokenResponse != nil else {
+            guard case let .success(processAuth) = response else {
                 logger.debug("no/invalid process response")
-                // TODO: delegate failure (network error?)
-                return
-            }
-            guard tokenResponse!.result != nil else {
-                // TODO: bubble this up
+                // TODO: bubble this up via delegate failure (network error?)
                 return
             }
             logger.debug("got token response")
             let rewrapped = SnapAuthTokenInfo(
-                token: tokenResponse!.result!.token,
-                expiresAt: tokenResponse!.result!.expiresAt)
+                token: processAuth.token,
+                expiresAt: processAuth.expiresAt)
 
             await delegate?.snapAuth(didFinishRegistration: .success(rewrapped))
         }
@@ -162,23 +158,19 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         logger.debug("made a body")
 //        logger.debug("user id \(assertion.userID.base64EncodedString())")
         Task {
-            let tokenResponse = await api.makeRequest(
+            let response = await api.makeRequest(
                 path: "/auth/process",
                 body: body,
                 type: SAProcessAuthResponse.self)
-            guard tokenResponse != nil else {
+            guard case let .success(authResponse) = response else {
                 logger.debug("no/invalid process response")
-                // TODO: delegate failure (network error?)
-                return
-            }
-            guard tokenResponse!.result != nil else {
-                // TODO: bubble this up
+                // TODO: bubble this up via delegate failure (network error?)
                 return
             }
             logger.debug("got token response")
             let rewrapped = SnapAuthTokenInfo(
-                token: tokenResponse!.result!.token,
-                expiresAt: tokenResponse!.result!.expiresAt)
+                token: authResponse.token,
+                expiresAt: authResponse.expiresAt)
 
             await delegate?.snapAuth(didFinishAuthentication: .success(rewrapped))
         }

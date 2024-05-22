@@ -110,7 +110,8 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
             type: SACreateRegisterOptionsResponse.self)
 
         guard case let .success(options) = response else {
-            // TODO: bubble error
+            let error = response.getError()!
+            await delegate?.snapAuth(didFinishRegistration: .failure(error))
             return
         }
 
@@ -166,7 +167,8 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 
 
         guard case let .success(options) = response else {
-            // TODO: bubble error
+            let error = response.getError()!
+            await delegate?.snapAuth(didFinishAuthentication: .failure(error))
             return
         }
 
@@ -227,4 +229,15 @@ extension AuthenticatingUser: Encodable {
              try container.encode(value, forKey: .handle)
          }
      }
+}
+
+extension Result {
+    func getError() -> Failure? {
+        switch self {
+        case .success:
+            return nil
+        case .failure(let failure):
+            return failure
+        }
+    }
 }

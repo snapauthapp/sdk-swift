@@ -35,9 +35,9 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
 
         Task {
             if (state == .authenticating) {
-                await delegate?.snapAuth(didFinishAuthentication: .failure(.asAuthorizationError))
+                await delegate?.snapAuth(didFinishAuthentication: .failure(.unknown))
             } else if (state == .registering) {
-                await delegate?.snapAuth(didFinishRegistration: .failure(.asAuthorizationError))
+                await delegate?.snapAuth(didFinishRegistration: .failure(.unknown))
             } else if (state == .autofill) {
                 // Intentional no-op
             }

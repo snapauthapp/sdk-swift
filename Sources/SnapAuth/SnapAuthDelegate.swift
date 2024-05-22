@@ -52,4 +52,4 @@ public struct SnapAuthTokenInfo {
     public let expiresAt: Date
 }
 
-public typealias SnapAuthResult = Result<SnapAuthTokenInfo, AuthenticationError>
+public typealias SnapAuthResult = Result<SnapAuthTokenInfo, SnapAuthError>

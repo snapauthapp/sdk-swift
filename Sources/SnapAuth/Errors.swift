@@ -1,4 +1,4 @@
-// FIXME: Go through and ensure errors are complete and accurate.
+/* FIXME: Go through and ensure errors are complete and accurate.
 public enum AuthenticationError: Error {
     /// The user canceled
     case canceled
@@ -7,6 +7,7 @@ public enum AuthenticationError: Error {
 
     case asAuthorizationError
 }
+ */
 
 
 public enum SnapAuthError: Error {
@@ -21,4 +22,12 @@ public enum SnapAuthError: Error {
 
     /// The request was valid and understood, but processing was refused.
     case badRequest
+
+    // Duplicated (ish) from ASAuthorizationError
+    case unknown
+//    case canceled
+//    case invalidResponse
+//    case notHandled
+//    case failed
+//    case notInteractive
 }

@@ -231,6 +231,7 @@ extension AuthenticatingUser: Encodable {
      }
 }
 
+/// Small addition to the native Result type to more easily extract error details.
 extension Result {
     func getError() -> Failure? {
         switch self {

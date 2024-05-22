@@ -53,8 +53,7 @@ struct SnapAuthClient {
         decoder.dateDecodingStrategy = .secondsSince1970
         guard let parsed = try? decoder.decode(SAWrappedResponse<T>.self, from: data)
         else {
-            logger?.error("Decoding request failed")
-            // TODO: return some sort of failure SAResponse
+            logger?.error("Decoding response failed")
             return .failure(.malformedResposne)
         }
 

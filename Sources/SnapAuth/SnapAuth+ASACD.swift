@@ -33,17 +33,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         // The start call can SILENTLY produce this error which never makes it into this handler
         // ASAuthorizationController credential request failed with error: Error Domain=com.apple.AuthenticationServices.AuthorizationError Code=1004 "(null)"
 
-        Task {
-            if (state == .authenticating) {
-                await delegate?.snapAuth(didFinishAuthentication: .failure(.unknown))
-            } else if (state == .registering) {
-                await delegate?.snapAuth(didFinishRegistration: .failure(.unknown))
-            } else if (state == .autofill) {
-                // Intentional no-op
-            }
-
-            state = .idle
-        }
+        sendError(.unknown)
     }
 
     public func authorizationController(
@@ -73,9 +63,24 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
             handleAssertion(authorization.credential as! ASAuthorizationSecurityKeyPublicKeyCredentialAssertion)
 #endif
         default:
-            // TODO: Handle this properly
-            logger.error("uhh")
+            sendError(.unexpectedAuthorizationType)
         }
+    }
+
+    /// Sends the error to the appropriate delegate method and resets the internal state back to idle
+    private func sendError(_ error: SnapAuthError) {
+        switch state {
+        case .authenticating:
+            Task { await delegate?.snapAuth(didFinishAuthentication: .failure(error)) }
+        case .registering:
+            Task { await delegate?.snapAuth(didFinishRegistration: .failure(error)) }
+        case .idle:
+            logger.error("Tried to send error in idle state")
+        case .autofill:
+            // No-op for now
+            break
+        }
+        state = .idle
     }
 
     private func handleRegistration(
@@ -97,8 +102,9 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         }
          */
         guard registration.rawAttestationObject != nil else {
-            // TODO: what should be done here?
-            logger.error("No attestation")
+            // This may change in the future?
+            logger.error("No attestation in registration response")
+            sendError(.registrationDataMissing)
             return
         }
 

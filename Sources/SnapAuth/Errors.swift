@@ -23,6 +23,13 @@ public enum SnapAuthError: Error {
     /// The request was valid and understood, but processing was refused.
     case badRequest
 
+
+    /// ASAuthorizationServices sent SnapAuth an unexpected type of response which we don't know how to handle. If you encounter this, please reach out to us.
+    case unexpectedAuthorizationType
+
+    /// Some of the data SnapAuth requested during credential registration was not provided, so we cannot proceed.
+    case registrationDataMissing
+
     // Duplicated (ish) from ASAuthorizationError
     case unknown
 //    case canceled

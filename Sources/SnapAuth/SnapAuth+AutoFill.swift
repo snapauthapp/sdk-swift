@@ -32,20 +32,19 @@ extension SnapAuth {
     ) async {
         reset()
         state = .autofill
-        let parsed = await api.makeRequest(
+        let response = await api.makeRequest(
             path: "/auth/createOptions",
             body: [:] as [String:String],
-            type: SACreateAuthOptionsResponse.self)!
+            type: SACreateAuthOptionsResponse.self)
 
-        guard parsed.result != nil else {
-            logger.error("no result for AF")
-            // TODO: bubble this up
+        guard case let .success(options) = response else {
+            // TODO: decide how to handle AutoFill errors
             return
         }
 
         // AutoFill always only uses passkeys, so this is not configurable
         let authRequests = buildAuthRequests(
-            from: parsed.result!,
+            from: options,
             authenticators: [.passkey])
 
         let controller = ASAuthorizationController(authorizationRequests: authRequests)

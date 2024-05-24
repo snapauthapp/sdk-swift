@@ -48,21 +48,12 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
 
 
         switch authorization.credential {
-        case is ASAuthorizationPlatformPublicKeyCredentialAssertion:
-            logger.debug("switch passkey assn")
-            handleAssertion(authorization.credential as! ASAuthorizationPlatformPublicKeyCredentialAssertion)
-        case is ASAuthorizationPlatformPublicKeyCredentialRegistration:
-            logger.debug("switch passkey registration")
-            handleRegistration(authorization.credential as! ASAuthorizationPlatformPublicKeyCredentialRegistration)
-#if HARDWARE_KEY_SUPPORT
-        case is ASAuthorizationSecurityKeyPublicKeyCredentialRegistration:
-            logger.debug("switch hardware key registration")
-            handleRegistration(authorization.credential as! ASAuthorizationSecurityKeyPublicKeyCredentialRegistration)
-        case is ASAuthorizationSecurityKeyPublicKeyCredentialAssertion:
-            logger.debug("switch hardware key assn")
-            handleAssertion(authorization.credential as! ASAuthorizationSecurityKeyPublicKeyCredentialAssertion)
-#endif
+        case is ASAuthorizationPublicKeyCredentialAssertion:
+            handleAssertion(authorization.credential as! ASAuthorizationPublicKeyCredentialAssertion)
+        case is ASAuthorizationPublicKeyCredentialRegistration:
+            handleRegistration(authorization.credential as! ASAuthorizationPublicKeyCredentialRegistration)
         default:
+            logger.error("Unexpected credential type \(String(describing: type(of: authorization.credential)))")
             sendError(.unexpectedAuthorizationType)
         }
     }

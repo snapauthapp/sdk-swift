@@ -40,10 +40,10 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         controller: ASAuthorizationController,
         didCompleteWithAuthorization authorization: ASAuthorization
     ) {
-        if delegate == nil {
-            logger.error("No SnapAuth delegate set")
-            return
-        }
+//        if delegate == nil {
+//            logger.error("No SnapAuth delegate set")
+//            return
+//        }
         logger.debug("ASACD did complete")
 
 
@@ -62,7 +62,8 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
     private func sendError(_ error: SnapAuthError) {
         switch state {
         case .authenticating:
-            Task { await delegate?.snapAuth(didFinishAuthentication: .failure(error)) }
+            authContinuation?.resume(returning: .failure(error))
+//            Task { await delegate?.snapAuth(didFinishAuthentication: .failure(error)) }
         case .registering:
 //            Task { await delegate?.snapAuth(didFinishRegistration: .failure(error)) }
             registerContinuation?.resume(returning: .failure(error))
@@ -166,7 +167,8 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
                 type: SAProcessAuthResponse.self)
             guard case let .success(authResponse) = response else {
                 logger.debug("/auth/process error")
-                await delegate?.snapAuth(didFinishAuthentication: .failure(response.getError()!))
+//                await delegate?.snapAuth(didFinishAuthentication: .failure(response.getError()!))
+                authContinuation?.resume(returning: .failure(response.getError()!))
                 return
             }
             logger.debug("got token response")
@@ -174,7 +176,8 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
                 token: authResponse.token,
                 expiresAt: authResponse.expiresAt)
 
-            await delegate?.snapAuth(didFinishAuthentication: .success(rewrapped))
+            authContinuation?.resume(returning: .success(rewrapped))
+//            await delegate?.snapAuth(didFinishAuthentication: .success(rewrapped))
         }
 
     }

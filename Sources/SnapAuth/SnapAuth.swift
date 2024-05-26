@@ -10,7 +10,7 @@ import os
 public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDelegate
 
     /// The delegate that SnapAuth informs about the success or failure of an operation.
-    public var delegate: SnapAuthDelegate?
+//    public var delegate: SnapAuthDelegate?
 
     internal let api: SnapAuthClient
 
@@ -22,6 +22,10 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     internal var anchor: ASPresentationAnchor?
 
     internal var authController: ASAuthorizationController?
+
+    internal var registerContinuation: CheckedContinuation<SnapAuthResult, Never>?
+    internal var authContinuation: CheckedContinuation<SnapAuthResult, Never>?
+
 
     /// - Parameters:
     ///   - publishableKey: Your SnapAuth publishable key. This can be obtained
@@ -84,7 +88,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         name: String,
         displayName: String? = nil,
         authenticators: Set<Authenticator> = Authenticator.all
-    ) async {
+    ) async -> SnapAuthResult {
         await startRegister(
             name: name,
             anchor: .default,
@@ -136,7 +140,6 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         }
     }
 
-    internal var registerContinuation: CheckedContinuation<SnapAuthResult, Never>?
 
     internal var authenticatingUser: AuthenticatingUser?
 
@@ -151,7 +154,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     public func startAuth(
         _ user: AuthenticatingUser,
         authenticators: Set<Authenticator> = Authenticator.all
-    ) async {
+    ) async -> SnapAuthResult {
         await startAuth(user, anchor: .default, authenticators: authenticators)
     }
 
@@ -160,7 +163,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         _ user: AuthenticatingUser,
         anchor: ASPresentationAnchor,
         authenticators: Set<Authenticator> = Authenticator.all
-    ) async {
+    ) async -> SnapAuthResult {
         reset()
         self.anchor = anchor
         self.authenticatingUser = user
@@ -176,8 +179,8 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 
         guard case let .success(options) = response else {
             let error = response.getError()!
-            await delegate?.snapAuth(didFinishAuthentication: .failure(error))
-            return
+//            await delegate?.snapAuth(didFinishAuthentication: .failure(error))
+            return .failure(error)
         }
 
         logger.debug("before controller")
@@ -191,9 +194,11 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         authController = controller
         controller.delegate = self
         controller.presentationContextProvider = self
-        logger.debug("perform requests")
-        controller.performRequests()
-        logger.debug("performed requests")
+        return await withCheckedContinuation { continuation in
+            authContinuation = continuation
+            logger.debug("perform requests")
+            controller.performRequests()
+        }
 
         // Sometimes the controller just WILL NOT CALL EITHER DELEGATE METHOD, so... yeah.
         // Maybe start a timer and auto-fail if neither delegate method runs in time?

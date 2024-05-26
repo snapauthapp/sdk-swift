@@ -64,7 +64,8 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         case .authenticating:
             Task { await delegate?.snapAuth(didFinishAuthentication: .failure(error)) }
         case .registering:
-            Task { await delegate?.snapAuth(didFinishRegistration: .failure(error)) }
+//            Task { await delegate?.snapAuth(didFinishRegistration: .failure(error)) }
+            registerContinuation?.resume(returning: .failure(error))
         case .idle:
             logger.error("Tried to send error in idle state")
         case .autofill:
@@ -95,7 +96,8 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         guard registration.rawAttestationObject != nil else {
             // This may change in the future?
             logger.error("No attestation in registration response")
-            sendError(.registrationDataMissing)
+            registerContinuation?.resume(returning: .failure(.registrationDataMissing))
+//            sendError(.registrationDataMissing)
             return
         }
 
@@ -116,7 +118,8 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
                 type: SAProcessAuthResponse.self)
             guard case let .success(processAuth) = response else {
                 logger.debug("/registration/process error")
-                await delegate?.snapAuth(didFinishRegistration: .failure(response.getError()!))
+//                await delegate?.snapAuth(didFinishRegistration: .failure(response.getError()!))
+                registerContinuation?.resume(returning: .failure(response.getError()!))
                 return
             }
             logger.debug("got token response")
@@ -124,7 +127,8 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
                 token: processAuth.token,
                 expiresAt: processAuth.expiresAt)
 
-            await delegate?.snapAuth(didFinishRegistration: .success(rewrapped))
+            registerContinuation?.resume(returning: .success(rewrapped))
+//            await delegate?.snapAuth(didFinishRegistration: .success(rewrapped))
         }
     }
 

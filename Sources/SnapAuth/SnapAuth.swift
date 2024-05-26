@@ -98,7 +98,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         anchor: ASPresentationAnchor,
         displayName: String? = nil,
         authenticators: Set<Authenticator> = Authenticator.all
-    ) async {
+    ) async -> SnapAuthResult {
         reset()
         self.anchor = anchor
         state = .registering
@@ -111,8 +111,9 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 
         guard case let .success(options) = response else {
             let error = response.getError()!
-            await delegate?.snapAuth(didFinishRegistration: .failure(error))
-            return
+//            await delegate?.snapAuth(didFinishRegistration: .failure(error))
+
+            return .failure(error)
         }
 
         let authRequests = buildRegisterRequests(
@@ -127,8 +128,15 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         controller.delegate = self
         controller.presentationContextProvider = self
         logger.debug("SR perform")
-        controller.performRequests()
+
+        return await withCheckedContinuation { continuation in
+            registerContinuation = continuation
+            controller.performRequests()
+
+        }
     }
+
+    internal var registerContinuation: CheckedContinuation<SnapAuthResult, Never>?
 
     internal var authenticatingUser: AuthenticatingUser?
 

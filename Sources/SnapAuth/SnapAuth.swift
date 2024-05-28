@@ -11,6 +11,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 
     /// The delegate that SnapAuth informs about the success or failure of an operation.
 //    public var delegate: SnapAuthDelegate?
+    internal var autoFillDelegate: SnapAuthAutofillDelegate?
 
     internal let api: SnapAuthClient
 

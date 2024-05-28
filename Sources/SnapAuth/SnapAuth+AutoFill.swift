@@ -11,27 +11,32 @@ extension SnapAuth {
 
     /// Starts the AutoFill process using a default ASPresentationAnchor
     @available(iOS 16.0, *)
-    public func handleAutoFill() async {
-        await handleAutoFill(anchor: .default)
+    public func handleAutoFill(delegate: SnapAuthAutofillDelegate) async {
+        await handleAutoFill(delegate: delegate, anchor: .default)
     }
 
     /// Use the specified anchor.
     /// This may be exposed publiy if needed, but the intent/goal is the default is (almost) always correct
     @available(iOS 16.0, *)
-    internal func handleAutoFill(anchor: ASPresentationAnchor) async {
+    internal func handleAutoFill(
+        delegate: SnapAuthAutofillDelegate,
+        anchor: ASPresentationAnchor
+    ) async {
         self.anchor = anchor
 
-        await handleAutoFill(presentationContextProvider: self)
+        await handleAutoFill(delegate: delegate, presentationContextProvider: self)
     }
 
     /// Use the specified presentationContextProvider.
     /// Like with handleAutoFill(anchor:) this could get publicly exposed later but is for the "file a bug" case
     @available(iOS 16.0, *)
     internal func handleAutoFill(
+        delegate: SnapAuthAutofillDelegate,
         presentationContextProvider: ASAuthorizationControllerPresentationContextProviding
     ) async {
         reset()
         state = .autofill
+        autoFillDelegate = delegate
         let response = await api.makeRequest(
             path: "/auth/createOptions",
             body: [:] as [String:String],
@@ -54,5 +59,10 @@ extension SnapAuth {
         logger.debug("AF perform")
         controller.performAutoFillAssistedRequests()
     }
+
 }
 #endif
+
+public protocol SnapAuthAutofillDelegate {
+    func snapAuth(didAutofillWithResult result: SnapAuthResult)
+}

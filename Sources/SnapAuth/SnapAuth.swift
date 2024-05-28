@@ -62,6 +62,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     internal func reset() -> Void {
         self.authenticatingUser = nil
         cancelPendingRequest()
+        state = .idle
     }
 
     private func cancelPendingRequest() {

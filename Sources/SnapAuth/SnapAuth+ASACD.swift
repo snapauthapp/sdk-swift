@@ -8,32 +8,28 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         controller: ASAuthorizationController,
         didCompleteWithError error: Error
     ) {
-//        if case ASAuthorizationError.canceled = error {
-//        }
-        // TODO: don't bubble this up if it's from an autoFill request
-        if let asError = error as? ASAuthorizationError {
-//            asError.code == .canceled
-
-
-            logger.error("ASACD \(asError.errorCode)")
-            // 1001 = no credentials available
-//        case unknown = 1000
-//        case canceled = 1001
-//        case invalidResponse = 1002
-//        case notHandled = 1003
-//        case failed = 1004
-//        case notInteractive = 1005
+        guard let asError = error as? ASAuthorizationError else {
+            logger.error("authorizationController didCompleteWithError error was not an ASAuthorizationError")
+            sendError(.unknown)
+            return
         }
-        logger.error("ASACD fail: \(error)")
-        // (lldb) po error
-        // Error Domain=com.apple.AuthenticationServices.AuthorizationError Code=1004 "Application with identifier V46X94865S.app.snapauth.PassKeyExample is not associated with domain demo.snapauth.app" UserInfo={NSLocalizedFailureReason=Application with identifier V46X94865S.app.snapauth.PassKeyExample is not associated with domain demo.snapauth.app}
-        // (lldb) po error.localizedDescription
-        // "The operation couldn’t be completed. Application with identifier V46X94865S.app.snapauth.PassKeyExample is not associated with domain demo.snapauth.app"
 
+        switch asError.code {
+        case .canceled:
+            sendError(.canceled)
+        case .failed:
+            sendError(.failed)
+        case .invalidResponse:
+            sendError(.invalidResponse)
+        case .notHandled:
+            sendError(.notHandled)
+        case .notInteractive:
+            sendError(.notInteractive)
+        @unknown default:
+            sendError(.unknown)
+        }
         // The start call can SILENTLY produce this error which never makes it into this handler
         // ASAuthorizationController credential request failed with error: Error Domain=com.apple.AuthenticationServices.AuthorizationError Code=1004 "(null)"
-
-        sendError(.unknown)
     }
 
     public func authorizationController(
@@ -74,7 +70,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         _ registration: ASAuthorizationPublicKeyCredentialRegistration
     ) {
         // Decode, send to SA, hand back resposne via delegate method
-        logger.info("got a registratoin response")
+        logger.info("got a registration response")
 
         let credentialId = Base64URL(from: registration.credentialID)
 

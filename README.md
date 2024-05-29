@@ -150,30 +150,6 @@ In any files that need to integrate with SnapAuth, be sure to import it:
 import SnapAuth
 ```
 
-### Implement `SnapAuthDelegate`
-
-If using SwiftUI, this can be done directly on a `View`.
-You may also do this in a separate class or struct.
-
-This will be called by our SDK when a user either authenticates or cancels the request.
-
-Example:
-```swift
-import SnapAuth
-
-func snapAuth(didFinishAuthentication result: SnapAuthTokenInfo) async {
-    guard case .success(let auth) = result else {
-        // User did not or could not authenticate.
-        return
-    }
-    // Send `auth.token` to your backend for server-side verification. Use it to
-    // determine the authenticating user, and send back an appropriate response
-    // to the client code.
-}
-```
-
-Registration is substantially the same.
-
 ### Call the API
 
 Grab your `publishable key` from the SnapAuth Dashboard; you'll use it below.
@@ -188,11 +164,11 @@ import SwiftUI
 struct SignInView: View {
   let snapAuth = SnapAuth(publishableKey: "pubkey_yourkey") // Set this value!
 
-  @State var username: String = ""
+  @State var userName: String = ""
 
   var body: some View {
     VStack {
-      TextField("Username", text: $username)
+      TextField("Username", text: $userName)
       Button("Sign In", systemImage: "person.badge.key") {
         signIn()
       }
@@ -201,13 +177,15 @@ struct SignInView: View {
 
   func signIn() {
     Task {
-      snapAuth.delegate = self
-      await snapAuth.startAuth(.handle(username), anchor: ASPresentationAnchor())
+      let result = await snapAuth.startAuth(.handle(userName))
+      switch result {
+      case .success(let auth):
+        // Send auth.token to your backend to sign in the user
+      case .failure(let error):
+        // Decide how to proceed
+      }
     }
   }
-}
-extension SignInView: SnapAuthDelegate {
-  // delegate methods described above
 }
 ```
 

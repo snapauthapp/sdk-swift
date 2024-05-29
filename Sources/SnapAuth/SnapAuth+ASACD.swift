@@ -10,7 +10,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
     ) {
 //        if case ASAuthorizationError.canceled = error {
 //        }
-        // TODO: don't bubble this up if it's from an autofill request
+        // TODO: don't bubble this up if it's from an autoFill request
         if let asError = error as? ASAuthorizationError {
 //            asError.code == .canceled
 
@@ -40,10 +40,6 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         controller: ASAuthorizationController,
         didCompleteWithAuthorization authorization: ASAuthorization
     ) {
-        if delegate == nil {
-            logger.error("No SnapAuth delegate set")
-            return
-        }
         logger.debug("ASACD did complete")
 
 
@@ -62,13 +58,13 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
     private func sendError(_ error: SnapAuthError) {
         switch state {
         case .authenticating:
-            Task { await delegate?.snapAuth(didFinishAuthentication: .failure(error)) }
+            authContinuation?.resume(returning: .failure(error))
         case .registering:
-            Task { await delegate?.snapAuth(didFinishRegistration: .failure(error)) }
+            registerContinuation?.resume(returning: .failure(error))
         case .idle:
             logger.error("Tried to send error in idle state")
-        case .autofill:
-            // No-op for now
+        case .autoFill:
+            // No-op for now. TODO: decide what errors to send
             break
         }
         state = .idle
@@ -113,10 +109,10 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
             let response = await api.makeRequest(
                 path: "/registration/process",
                 body: body,
-                type: SAProcessAuthResponse.self)
+                type: SAProcessAuthResponse.self) // TODO: rename this type
             guard case let .success(processAuth) = response else {
                 logger.debug("/registration/process error")
-                await delegate?.snapAuth(didFinishRegistration: .failure(response.getError()!))
+                sendError(response.getError()!)
                 return
             }
             logger.debug("got token response")
@@ -124,7 +120,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
                 token: processAuth.token,
                 expiresAt: processAuth.expiresAt)
 
-            await delegate?.snapAuth(didFinishRegistration: .success(rewrapped))
+            registerContinuation?.resume(returning: .success(rewrapped))
         }
     }
 
@@ -137,7 +133,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
             ? Base64URL(from: assertion.userID)
             : nil
 
-        // If userHandle is nil, guard that we have userInfo since it's required on the BE
+        // TODO: If userHandle is nil, guard that we have userInfo since it's required on the BE
 
 
         let credentialId = Base64URL(from: assertion.credentialID)
@@ -162,7 +158,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
                 type: SAProcessAuthResponse.self)
             guard case let .success(authResponse) = response else {
                 logger.debug("/auth/process error")
-                await delegate?.snapAuth(didFinishAuthentication: .failure(response.getError()!))
+                sendError(response.getError()!)
                 return
             }
             logger.debug("got token response")
@@ -170,7 +166,15 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
                 token: authResponse.token,
                 expiresAt: authResponse.expiresAt)
 
-            await delegate?.snapAuth(didFinishAuthentication: .success(rewrapped))
+            if state == .authenticating {
+                // if AF, send to delegate, otherwise do this
+                authContinuation?.resume(returning: .success(rewrapped))
+            } else if state == .autoFill {
+                assert(autoFillDelegate != nil, "AutoFill w/ no delegate")
+                autoFillDelegate?.snapAuth(didAutoFillWithResult: .success(rewrapped))
+            } else {
+                assert(false, "Not authenticating or AF in assertion delegate")
+            }
         }
 
     }

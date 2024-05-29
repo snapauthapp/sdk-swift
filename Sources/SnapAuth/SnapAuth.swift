@@ -9,8 +9,8 @@ import os
 @available(macOS 12.0, iOS 15.0, tvOS 16.0, *)
 public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDelegate
 
-    /// The delegate that SnapAuth informs about the success or failure of an operation.
-    public var delegate: SnapAuthDelegate?
+    /// The delegate that SnapAuth informs about the success or failure of an AutoFill operation.
+    internal var autoFillDelegate: SnapAuthAutoFillDelegate?
 
     internal let api: SnapAuthClient
 
@@ -22,6 +22,10 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     internal var anchor: ASPresentationAnchor?
 
     internal var authController: ASAuthorizationController?
+
+    internal var registerContinuation: CheckedContinuation<SnapAuthResult, Never>?
+    internal var authContinuation: CheckedContinuation<SnapAuthResult, Never>?
+
 
     /// - Parameters:
     ///   - publishableKey: Your SnapAuth publishable key. This can be obtained
@@ -57,6 +61,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     internal func reset() -> Void {
         self.authenticatingUser = nil
         cancelPendingRequest()
+        state = .idle
     }
 
     private func cancelPendingRequest() {
@@ -79,12 +84,26 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     ///   - authenticators: What authenticators should be permitted. If omitted,
     ///   all available types for the platform will be allowed.
     ///
-    /// - Returns: Nothing. Instead, the `SnapAuthDelegate` will be informed of the result.
+    /// - Returns: A `Result` containing either `SnapAuthTokenInfo` upon success
+    ///   or a `SnapAuthError` upon failure.
+    ///
+    /// # Example
+    /// ```swift
+    /// Task {
+    ///     let result = await snapAuth.startRegister(name: name)
+    ///     switch result {
+    ///     case .success(let registration):
+    ///         // send registration.token to your backend to create the credential
+    ///     case .failure(let error):
+    ///         // Examine the error and decide how best to proceed
+    ///     }
+    /// }
+    /// ```
     public func startRegister(
         name: String,
         displayName: String? = nil,
         authenticators: Set<Authenticator> = Authenticator.all
-    ) async {
+    ) async -> SnapAuthResult {
         await startRegister(
             name: name,
             anchor: .default,
@@ -98,7 +117,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         anchor: ASPresentationAnchor,
         displayName: String? = nil,
         authenticators: Set<Authenticator> = Authenticator.all
-    ) async {
+    ) async -> SnapAuthResult {
         reset()
         self.anchor = anchor
         state = .registering
@@ -110,9 +129,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
             type: SACreateRegisterOptionsResponse.self)
 
         guard case let .success(options) = response else {
-            let error = response.getError()!
-            await delegate?.snapAuth(didFinishRegistration: .failure(error))
-            return
+            return .failure(response.getError()!)
         }
 
         let authRequests = buildRegisterRequests(
@@ -127,7 +144,12 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         controller.delegate = self
         controller.presentationContextProvider = self
         logger.debug("SR perform")
-        controller.performRequests()
+
+        return await withCheckedContinuation { continuation in
+            registerContinuation = continuation
+            controller.performRequests()
+
+        }
     }
 
     internal var authenticatingUser: AuthenticatingUser?
@@ -139,11 +161,26 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     ///   - user: The authenticating user's `id` or `handle`
     ///   - authenticators: What authenticators should be permitted. If omitted, all available types for the platform will be allowed.
     ///
-    /// - Returns: Nothing. Instead, the `SnapAuthDelegate` will be informed of the result.
+    ///
+    /// - Returns: A `Result` containing either `SnapAuthTokenInfo` upon success
+    ///   or a `SnapAuthError` upon failure.
+    ///
+    /// # Example
+    /// ```swift
+    /// Task {
+    ///     let result = await snapAuth.startAuth(.handle(userName))
+    ///     switch result {
+    ///     case .success(let auth):
+    ///         // send auth.token to your backend to verify
+    ///     case .failure(let error):
+    ///         // Examine the error and decide how best to proceed
+    ///     }
+    /// }
+    /// ```
     public func startAuth(
         _ user: AuthenticatingUser,
         authenticators: Set<Authenticator> = Authenticator.all
-    ) async {
+    ) async -> SnapAuthResult {
         await startAuth(user, anchor: .default, authenticators: authenticators)
     }
 
@@ -152,7 +189,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         _ user: AuthenticatingUser,
         anchor: ASPresentationAnchor,
         authenticators: Set<Authenticator> = Authenticator.all
-    ) async {
+    ) async -> SnapAuthResult {
         reset()
         self.anchor = anchor
         self.authenticatingUser = user
@@ -167,9 +204,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 
 
         guard case let .success(options) = response else {
-            let error = response.getError()!
-            await delegate?.snapAuth(didFinishAuthentication: .failure(error))
-            return
+            return .failure(response.getError()!)
         }
 
         logger.debug("before controller")
@@ -183,9 +218,11 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         authController = controller
         controller.delegate = self
         controller.presentationContextProvider = self
-        logger.debug("perform requests")
-        controller.performRequests()
-        logger.debug("performed requests")
+        return await withCheckedContinuation { continuation in
+            authContinuation = continuation
+            logger.debug("perform requests")
+            controller.performRequests()
+        }
 
         // Sometimes the controller just WILL NOT CALL EITHER DELEGATE METHOD, so... yeah.
         // Maybe start a timer and auto-fail if neither delegate method runs in time?
@@ -202,7 +239,7 @@ enum State {
     case idle
     case registering
     case authenticating
-    case autofill
+    case autoFill
 }
 
 public enum AuthenticatingUser {

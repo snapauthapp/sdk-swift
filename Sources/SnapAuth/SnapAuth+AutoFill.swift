@@ -11,48 +11,56 @@ extension SnapAuth {
 
     /// Starts the AutoFill process using a default ASPresentationAnchor
     @available(iOS 16.0, *)
-    public func handleAutoFill() async {
-        await handleAutoFill(anchor: .default)
+    public func handleAutoFill(delegate: SnapAuthAutoFillDelegate) {
+        handleAutoFill(delegate: delegate, anchor: .default)
     }
 
     /// Use the specified anchor.
     /// This may be exposed publiy if needed, but the intent/goal is the default is (almost) always correct
     @available(iOS 16.0, *)
-    internal func handleAutoFill(anchor: ASPresentationAnchor) async {
+    internal func handleAutoFill(
+        delegate: SnapAuthAutoFillDelegate,
+        anchor: ASPresentationAnchor
+    ) {
         self.anchor = anchor
 
-        await handleAutoFill(presentationContextProvider: self)
+        handleAutoFill(delegate: delegate, presentationContextProvider: self)
     }
 
     /// Use the specified presentationContextProvider.
     /// Like with handleAutoFill(anchor:) this could get publicly exposed later but is for the "file a bug" case
     @available(iOS 16.0, *)
     internal func handleAutoFill(
+        delegate: SnapAuthAutoFillDelegate,
         presentationContextProvider: ASAuthorizationControllerPresentationContextProviding
-    ) async {
+    ) {
         reset()
-        state = .autofill
-        let response = await api.makeRequest(
-            path: "/auth/createOptions",
-            body: [:] as [String:String],
-            type: SACreateAuthOptionsResponse.self)
+        state = .autoFill
+        autoFillDelegate = delegate
+        Task {
+            let response = await api.makeRequest(
+                path: "/auth/createOptions",
+                body: [:] as [String:String],
+                type: SACreateAuthOptionsResponse.self)
 
-        guard case let .success(options) = response else {
-            // TODO: decide how to handle AutoFill errors
-            return
+            guard case let .success(options) = response else {
+                // TODO: decide how to handle AutoFill errors
+                return
+            }
+
+            // AutoFill always only uses passkeys, so this is not configurable
+            let authRequests = buildAuthRequests(
+                from: options,
+                authenticators: [.passkey])
+
+            let controller = ASAuthorizationController(authorizationRequests: authRequests)
+            authController = controller
+            controller.delegate = self
+            controller.presentationContextProvider = presentationContextProvider
+            logger.debug("AF perform")
+            controller.performAutoFillAssistedRequests()
         }
-
-        // AutoFill always only uses passkeys, so this is not configurable
-        let authRequests = buildAuthRequests(
-            from: options,
-            authenticators: [.passkey])
-
-        let controller = ASAuthorizationController(authorizationRequests: authRequests)
-        authController = controller
-        controller.delegate = self
-        controller.presentationContextProvider = presentationContextProvider
-        logger.debug("AF perform")
-        controller.performAutoFillAssistedRequests()
     }
+
 }
 #endif

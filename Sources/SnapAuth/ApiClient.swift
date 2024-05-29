@@ -59,6 +59,15 @@ struct SnapAuthClient {
 
         guard let wrapped = parsed.result else {
             // TODO: match all of the docuemented error types
+            // There's only a small subset that are (currently) reachable from
+            // client APIs:
+            // AuthenticatingUserAccountNotFound
+            // InvalidInput
+            // UsingDeactivatedCredential
+            // PublishableKeyNotFound
+            // InvalidAuthorizationHeader
+            //
+            // And, of those, most should be unreachable when actually using the SDK
             return .failure(.badRequest)
         }
         return .success(wrapped)

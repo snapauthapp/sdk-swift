@@ -9,9 +9,8 @@ import os
 @available(macOS 12.0, iOS 15.0, tvOS 16.0, *)
 public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDelegate
 
-    /// The delegate that SnapAuth informs about the success or failure of an operation.
-//    public var delegate: SnapAuthDelegate?
-    internal var autoFillDelegate: SnapAuthAutofillDelegate?
+    /// The delegate that SnapAuth informs about the success or failure of an AutoFill operation.
+    internal var autoFillDelegate: SnapAuthAutoFillDelegate?
 
     internal let api: SnapAuthClient
 
@@ -130,10 +129,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
             type: SACreateRegisterOptionsResponse.self)
 
         guard case let .success(options) = response else {
-            let error = response.getError()!
-//            await delegate?.snapAuth(didFinishRegistration: .failure(error))
-
-            return .failure(error)
+            return .failure(response.getError()!)
         }
 
         let authRequests = buildRegisterRequests(
@@ -155,7 +151,6 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 
         }
     }
-
 
     internal var authenticatingUser: AuthenticatingUser?
 
@@ -209,9 +204,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 
 
         guard case let .success(options) = response else {
-            let error = response.getError()!
-//            await delegate?.snapAuth(didFinishAuthentication: .failure(error))
-            return .failure(error)
+            return .failure(response.getError()!)
         }
 
         logger.debug("before controller")

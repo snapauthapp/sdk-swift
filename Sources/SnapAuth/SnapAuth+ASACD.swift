@@ -10,7 +10,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
     ) {
 //        if case ASAuthorizationError.canceled = error {
 //        }
-        // TODO: don't bubble this up if it's from an autofill request
+        // TODO: don't bubble this up if it's from an autoFill request
         if let asError = error as? ASAuthorizationError {
 //            asError.code == .canceled
 
@@ -63,7 +63,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
             registerContinuation?.resume(returning: .failure(error))
         case .idle:
             logger.error("Tried to send error in idle state")
-        case .autofill:
+        case .autoFill:
             // No-op for now. TODO: decide what errors to send
             break
         }
@@ -169,9 +169,9 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
             if state == .authenticating {
                 // if AF, send to delegate, otherwise do this
                 authContinuation?.resume(returning: .success(rewrapped))
-            } else if state == .autofill {
+            } else if state == .autoFill {
                 assert(autoFillDelegate != nil, "AutoFill w/ no delegate")
-                autoFillDelegate?.snapAuth(didAutofillWithResult: .success(rewrapped))
+                autoFillDelegate?.snapAuth(didAutoFillWithResult: .success(rewrapped))
             } else {
                 assert(false, "Not authenticating or AF in assertion delegate")
             }

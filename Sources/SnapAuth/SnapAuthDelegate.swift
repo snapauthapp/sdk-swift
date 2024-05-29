@@ -2,7 +2,7 @@ import Foundation
 
 /// An interface for providing information about the outcome of a SnapAuth AutoFill request
 public protocol SnapAuthAutoFillDelegate {
-    func snapAuth(didAutofillWithResult result: SnapAuthResult)
+    func snapAuth(didAutoFillWithResult result: SnapAuthResult)
 }
 
 public struct SnapAuthTokenInfo {

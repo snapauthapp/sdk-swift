@@ -239,7 +239,7 @@ enum State {
     case idle
     case registering
     case authenticating
-    case autofill
+    case autoFill
 }
 
 public enum AuthenticatingUser {

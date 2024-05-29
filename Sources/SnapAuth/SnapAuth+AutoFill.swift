@@ -11,7 +11,7 @@ extension SnapAuth {
 
     /// Starts the AutoFill process using a default ASPresentationAnchor
     @available(iOS 16.0, *)
-    public func handleAutoFill(delegate: SnapAuthAutofillDelegate) {
+    public func handleAutoFill(delegate: SnapAuthAutoFillDelegate) {
         handleAutoFill(delegate: delegate, anchor: .default)
     }
 
@@ -19,7 +19,7 @@ extension SnapAuth {
     /// This may be exposed publiy if needed, but the intent/goal is the default is (almost) always correct
     @available(iOS 16.0, *)
     internal func handleAutoFill(
-        delegate: SnapAuthAutofillDelegate,
+        delegate: SnapAuthAutoFillDelegate,
         anchor: ASPresentationAnchor
     ) {
         self.anchor = anchor
@@ -31,7 +31,7 @@ extension SnapAuth {
     /// Like with handleAutoFill(anchor:) this could get publicly exposed later but is for the "file a bug" case
     @available(iOS 16.0, *)
     internal func handleAutoFill(
-        delegate: SnapAuthAutofillDelegate,
+        delegate: SnapAuthAutoFillDelegate,
         presentationContextProvider: ASAuthorizationControllerPresentationContextProviding
     ) {
         reset()
@@ -64,7 +64,3 @@ extension SnapAuth {
 
 }
 #endif
-
-public protocol SnapAuthAutofillDelegate {
-    func snapAuth(didAutofillWithResult result: SnapAuthResult)
-}

@@ -1,40 +1,8 @@
 import Foundation
 
-/// An interface for providing information about the outcome of a SnapAuth request
-public protocol SnapAuthDelegate {
-    /// Tells the delegate when SnapAuth finished a modal authentication request.
-    ///
-    /// Implementations should examine the result to determine if it was a
-    /// success or failure, and proceed accordingly.
-    ///
-    /// ```
-    /// func snapAuth(didFinishAuthentication result: SnapAuthResult) async {
-    ///     switch result {
-    ///     case .success(let auth):
-    ///         // Send auth.token to your backend
-    ///     case .failure(let error):
-    ///         // Examine error to decide how to proceed
-    ///     }
-    /// }
-    /// ```
-    func snapAuth(didFinishAuthentication result: SnapAuthResult) async
-
-    /// Tells the delegate when SnapAuth finished a registration request.
-    ///
-    /// Implementations should examine the result to determine if it was a
-    /// success or failure, and proceed accordingly.
-    ///
-    /// ```
-    /// func snapAuth(didFinishRegistration result: SnapAuthResult) async {
-    ///     switch result {
-    ///     case .success(let registration):
-    ///         // Send registration.token to your backend
-    ///     case .failure(let error):
-    ///         // Examine error to decide how to proceed
-    ///     }
-    /// }
-    /// ```
-    func snapAuth(didFinishRegistration result: SnapAuthResult) async
+/// An interface for providing information about the outcome of a SnapAuth AutoFill request
+public protocol SnapAuthAutoFillDelegate {
+    func snapAuth(didAutofillWithResult result: SnapAuthResult)
 }
 
 public struct SnapAuthTokenInfo {

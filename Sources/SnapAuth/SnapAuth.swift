@@ -85,7 +85,21 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     ///   - authenticators: What authenticators should be permitted. If omitted,
     ///   all available types for the platform will be allowed.
     ///
-    /// - Returns: Nothing. Instead, the `SnapAuthDelegate` will be informed of the result.
+    /// - Returns: A `Result` containing either `SnapAuthTokenInfo` upon success
+    ///   or a `SnapAuthError` upon failure.
+    ///
+    /// # Example
+    /// ```swift
+    /// Task {
+    ///     let result = await snapAuth.startRegister(name: name)
+    ///     switch result {
+    ///     case .success(let registration):
+    ///         // send registration.token to your backend to create the credential
+    ///     case .failure(let error):
+    ///         // Examine the error and decide how best to proceed
+    ///     }
+    /// }
+    /// ```
     public func startRegister(
         name: String,
         displayName: String? = nil,
@@ -152,7 +166,22 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     ///   - user: The authenticating user's `id` or `handle`
     ///   - authenticators: What authenticators should be permitted. If omitted, all available types for the platform will be allowed.
     ///
-    /// - Returns: Nothing. Instead, the `SnapAuthDelegate` will be informed of the result.
+    ///
+    /// - Returns: A `Result` containing either `SnapAuthTokenInfo` upon success
+    ///   or a `SnapAuthError` upon failure.
+    ///
+    /// # Example
+    /// ```swift
+    /// Task {
+    ///     let result = await snapAuth.startAuth(.handle(userName))
+    ///     switch result {
+    ///     case .success(let auth):
+    ///         // send auth.token to your backend to verify
+    ///     case .failure(let error):
+    ///         // Examine the error and decide how best to proceed
+    ///     }
+    /// }
+    /// ```
     public func startAuth(
         _ user: AuthenticatingUser,
         authenticators: Set<Authenticator> = Authenticator.all

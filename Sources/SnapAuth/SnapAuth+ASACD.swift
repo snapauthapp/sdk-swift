@@ -91,8 +91,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         guard registration.rawAttestationObject != nil else {
             // This may change in the future?
             logger.error("No attestation in registration response")
-            registerContinuation?.resume(returning: .failure(.registrationDataMissing))
-//            sendError(.registrationDataMissing)
+            sendError(.registrationDataMissing)
             return
         }
 
@@ -110,11 +109,10 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
             let response = await api.makeRequest(
                 path: "/registration/process",
                 body: body,
-                type: SAProcessAuthResponse.self)
+                type: SAProcessAuthResponse.self) // TODO: rename this type
             guard case let .success(processAuth) = response else {
                 logger.debug("/registration/process error")
-//                await delegate?.snapAuth(didFinishRegistration: .failure(response.getError()!))
-                registerContinuation?.resume(returning: .failure(response.getError()!))
+                sendError(response.getError()!)
                 return
             }
             logger.debug("got token response")
@@ -123,7 +121,6 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
                 expiresAt: processAuth.expiresAt)
 
             registerContinuation?.resume(returning: .success(rewrapped))
-//            await delegate?.snapAuth(didFinishRegistration: .success(rewrapped))
         }
     }
 

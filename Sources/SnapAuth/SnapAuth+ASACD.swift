@@ -40,10 +40,6 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         controller: ASAuthorizationController,
         didCompleteWithAuthorization authorization: ASAuthorization
     ) {
-//        if delegate == nil {
-//            logger.error("No SnapAuth delegate set")
-//            return
-//        }
         logger.debug("ASACD did complete")
 
 

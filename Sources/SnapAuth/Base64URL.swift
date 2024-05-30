@@ -1,7 +1,7 @@
 import Foundation
 
 /// Converts in and out of Base64URL formats
-struct Base64URL: Codable {
+struct Base64URL {
     enum Base64UrlError: Error {
         case invalidData
     }
@@ -21,6 +21,9 @@ struct Base64URL: Codable {
         self.data = data
     }
 
+    /// Initialize from a base64URL-formatted string. Throws if the string is
+    /// not valid. This is intended to ease testing and decoding, and not
+    /// general use.
     init(_ base64URLString: String) throws {
         var rawBase64 = base64URLString
             .replacingOccurrences(of: "-", with: "+")
@@ -34,6 +37,11 @@ struct Base64URL: Codable {
         }
         self.data = data
     }
+
+}
+
+/// Implements the Codable protocol by using the string representation
+extension Base64URL: Codable {
 
     /// Allows for direct decoding of Base64URL values from e.g. JSON
     init(from decoder: Decoder) throws {

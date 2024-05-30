@@ -8,8 +8,7 @@ extension SnapAuth {
         displayName: String?,
         authenticators: Set<SnapAuth.Authenticator>
     ) -> [ASAuthorizationRequest] {
-        let challenge = options.publicKey.challenge.toData()!
-
+        let challenge = options.publicKey.challenge.data
         var requests: [ASAuthorizationRequest] = []
 
         if authenticators.contains(.passkey) {
@@ -18,7 +17,7 @@ extension SnapAuth {
             let request = provider.createCredentialRegistrationRequest(
                 challenge: challenge,
                 name: name,
-                userID: options.publicKey.user.id.toData()!)
+                userID: options.publicKey.user.id.data)
 
             requests.append(request)
         }
@@ -31,7 +30,7 @@ extension SnapAuth {
                 challenge: challenge,
                 displayName: name,
                 name: name,
-                userID: options.publicKey.user.id.toData()!)
+                userID: options.publicKey.user.id.data)
             request.attestationPreference = .direct // TODO: use API response
             request.credentialParameters = [.init(algorithm: .ES256)] // TODO: use API response
 
@@ -46,7 +45,7 @@ extension SnapAuth {
         from options: SACreateAuthOptionsResponse,
         authenticators: Set<SnapAuth.Authenticator>
     ) -> [ASAuthorizationRequest] {
-        let challenge = options.publicKey.challenge.toData()!
+        let challenge = options.publicKey.challenge.data
 
         var requests: [ASAuthorizationRequest] = []
 
@@ -57,7 +56,7 @@ extension SnapAuth {
             // Process the `allowedCredentials` so the authenticator knows what
             // it can use. API responses omit this for AutoFill requests.
             let allowed = options.publicKey.allowCredentials?.map {
-                ASAuthorizationPlatformPublicKeyCredentialDescriptor(credentialID: $0.id.toData()!)
+                ASAuthorizationPlatformPublicKeyCredentialDescriptor(credentialID: $0.id.data)
             }
 
             let request = provider.createCredentialAssertionRequest(challenge: challenge)
@@ -75,7 +74,7 @@ extension SnapAuth {
             let request = provider.createCredentialAssertionRequest(challenge: challenge)
             let allowed = options.publicKey.allowCredentials!.map {
                 ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor(
-                    credentialID: $0.id.toData()!,
+                    credentialID: $0.id.data,
                     transports: ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor.Transport.allSupported) // TODO: the API should hint this
             }
             request.allowedCredentials = allowed

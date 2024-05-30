@@ -67,7 +67,8 @@ extension SnapAuth {
         }
 
 #if HARDWARE_KEY_SUPPORT
-        if authenticators.contains(.securityKey) {
+        if authenticators.contains(.securityKey) &&
+           options.publicKey.allowCredentials != nil {
 
             let provider = ASAuthorizationSecurityKeyPublicKeyCredentialProvider(
                 relyingPartyIdentifier: options.publicKey.rpId)

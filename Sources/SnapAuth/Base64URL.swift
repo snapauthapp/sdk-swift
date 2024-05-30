@@ -4,6 +4,10 @@ import Foundation
 struct Base64URL: Codable {
     private var base64URLString: String
 
+    init(_ base64URLString: String) {
+        self.base64URLString = base64URLString
+    }
+
     /// Allows for direct decoding of Base64URL values from e.g. JSON
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()

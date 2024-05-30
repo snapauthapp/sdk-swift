@@ -15,15 +15,15 @@ This is the official Swift SDK for [SnapAuth](https://www.snapauth.app?utm_sourc
 
 This SDK supports all major Apple platforms that support passkeys and hardware authenticators:
 
-Platform | Passkeys | Hardware Keys
---- | --- | ---
-iOS | ✅ 15.0+ | ✅[^usb-hardware-varies] 15.0+
-iPadOS | ✅ 15.0+ | ✅[^usb-hardware-varies] 15.0+
-macOS | ✅ 12.0+ | ✅ 12.0+
-macOS (Catalyst) | ⚠️[^platform-untested] | ⚠️[^platform-untested]
-visionOS | ✅ 1.0+ | ❌[^no-usb]
-tvOS | ⚠️[^platform-untested] 16.0+ | ❌[^no-usb]
-watchOS | ❌[^no-watch] | ❌[^no-watch]
+Platform | Passkeys | Hardware Keys | Notes
+--- | --- | --- | ---
+iOS | ✅ 15.0+ | ✅ 15.0+ |
+iPadOS | ✅ 15.0+ | ✅ 15.0+ |
+macOS | ✅ 12.0+ | ✅ 12.0+ |
+macOS (Catalyst) | ⚠️ | ⚠️ | Still being tested (should work)
+visionOS | ✅ 1.0+ | ❌ | Hardware keys are not supported on visionOS
+tvOS | ⚠️ 16.0+ | ❌ | Still being tested, hardware keys are not supported on tvOS
+watchOS | ❌ | ❌ | Apple Watch does not support passkeys
 
 ## Apple-specific setup
 
@@ -206,8 +206,3 @@ Even with the Apple-documented configuration, the AutoFill API does not reliably
 ## License
 
 BSD-3-Clause
-
-[^no-watch]: Passkeys are not supported on Apple Watch
-[^no-usb]: Unsupported by Apple (no USB port!)
-[^platform-untested]: Untested, but will probably work
-[^usb-hardware-varies]: Supported at the platform level, but compatibility varies by device. As a general rule, if it physically fits, it should work.

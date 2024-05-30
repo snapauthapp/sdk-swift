@@ -12,7 +12,7 @@ jobs:
     name: ${{ matrix.swift }} on ${{ matrix.os }}
     strategy:
       matrix:
-        os: 
+        os:
          # - ubuntu-latest
          - macos-latest
         swift:

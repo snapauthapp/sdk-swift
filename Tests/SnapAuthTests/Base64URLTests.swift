@@ -43,6 +43,18 @@ final class Base64URLTests: XCTestCase {
 //        "Zm9vYmFy\v", // invalid vertical tab character
     ]
 
+    func testRoundtrip() {
+        for (base64url, data) in validBase64UrlTestCases {
+            let fromData = Base64URL(from: data)
+            XCTAssertEqual(fromData.base64URLString, base64url)
+            XCTAssertEqual(fromData.toData()!, data)
+
+            let fromString = Base64URL(base64url)
+            XCTAssertEqual(fromString.toData()!, data)
+            XCTAssertEqual(Base64URL(from: fromString.toData()!).base64URLString, base64url)
+        }
+    }
+
     func testBase64URLDecoding() {
         let decoder = JSONDecoder()
         for (base64url, expected) in validBase64UrlTestCases {

@@ -2,7 +2,7 @@ import Foundation
 
 /// Converts in and out of Base64URL formats
 struct Base64URL: Codable {
-    private var base64URLString: String
+    let base64URLString: String
 
     init(_ base64URLString: String) {
         self.base64URLString = base64URLString

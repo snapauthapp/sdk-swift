@@ -43,33 +43,33 @@ final class Base64URLTests: XCTestCase {
 //        "Zm9vYmFy\v", // invalid vertical tab character
     ]
 
-    func testRoundtrip() {
+    func testRoundtrip() throws {
         for (base64url, data) in validBase64UrlTestCases {
-            let fromData = Base64URL(from: data)
-            XCTAssertEqual(fromData.base64URLString, base64url)
-            XCTAssertEqual(fromData.toData()!, data)
+//            let fromData = Base64URL(from: data)
+//            XCTAssertEqual(fromData.string, base64url)
+//            XCTAssertEqual(fromData.data, data)
+//            XCTAssertEqual(try Base64URL(fromData.string).data, data)
 
-            let fromString = Base64URL(base64url)
-            XCTAssertEqual(fromString.toData()!, data)
-            XCTAssertEqual(Base64URL(from: fromString.toData()!).base64URLString, base64url)
+            let fromString = try Base64URL(base64url)
+            XCTAssertEqual(fromString.data, data)
+            XCTAssertEqual(fromString.string, base64url)
+            XCTAssertEqual(Base64URL(from: fromString.data).string, base64url)
         }
     }
 
-    func testBase64URLDecoding() {
+    func testBase64URLDecoding() throws {
         let decoder = JSONDecoder()
         for (base64url, expected) in validBase64UrlTestCases {
-//            let base64url = Base64URL(from: data)
-//            XCTAssertEqual(expected)
-            let actual = try! decoder.decode(Base64URL.self, from: "\"\(base64url)\"".data(using: .utf8)!)
-            XCTAssertEqual(actual.toData()!, expected)
+            let json = "\"\(base64url)\"" // Wrap in quotes
+            let actual = try decoder.decode(Base64URL.self, from: json.data(using: .utf8)!)
+            XCTAssertEqual(actual.data, expected, base64url)
         }
     }
 
     func testInvalidBase64URLData() {
         // This will change in a moment
         for invalid in invalidBase64UrlStrings {
-            let base64URL = Base64URL(invalid)
-            XCTAssertNil(base64URL.toData(), "\(invalid) became \(base64URL.toData()!.base64EncodedString())")
+            XCTAssertNil(try? Base64URL(invalid))
         }
     }
 }

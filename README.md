@@ -2,6 +2,8 @@
 
 This is the official Swift SDK for [SnapAuth](https://www.snapauth.app?utm_source=GitHub&utm_campaign=sdk&utm_content=sdk-swift).
 
+SnapAuth will let you add passkey support to your native app in a snap!
+
 🚧 This SDK is in beta! 🚧
 
 ![GitHub License](https://img.shields.io/github/license/snapauthapp/sdk-typescript)
@@ -15,127 +17,44 @@ This is the official Swift SDK for [SnapAuth](https://www.snapauth.app?utm_sourc
 
 This SDK supports all major Apple platforms that support passkeys and hardware authenticators:
 
-Platform | Passkeys | Hardware Keys
---- | --- | ---
-iOS | ✅ 15.0+ | ✅[^usb-hardware-varies] 15.0+
-iPadOS | ✅ 15.0+ | ✅[^usb-hardware-varies] 15.0+
-macOS | ✅ 12.0+ | ✅ 12.0+
-macOS (Catalyst) | ⚠️[^platform-untested] | ⚠️[^platform-untested]
-visionOS | ✅ 1.0+ | ❌[^no-usb]
-tvOS | ⚠️[^platform-untested] 16.0+ | ❌[^no-usb]
-watchOS | ❌[^no-watch] | ❌[^no-watch]
+Platform | Passkeys | Hardware Keys | Notes
+--- | --- | --- | ---
+iOS | ✅ 15.0+ | ✅ 15.0+ |
+iPadOS | ✅ 15.0+ | ✅ 15.0+ |
+macOS | ✅ 12.0+ | ✅ 12.0+ |
+macOS (Catalyst) | ⚠️ | ⚠️ | Still being tested (should work)
+visionOS | ✅ 1.0+ | ❌ | Hardware keys are not supported on visionOS
+tvOS | ⚠️ 16.0+ | ❌ | Still being tested, hardware keys are not supported on tvOS
+watchOS | ❌ | ❌ | Apple Watch does not support passkeys
 
-## Apple-specific setup
+## Getting Started
 
-> [!IMPORTANT]
-> All native apps require special domain confirmation to use.
-> This cannot be skipped!
+### Register for SnapAuth
 
-If you haven't already registered for SnapAuth, do so: https://www.snapauth.app/register
+If you haven't already registered for SnapAuth, you'll need to do so: https://www.snapauth.app/register
 
-Unlike for web integrations, `localhost` generally does not work nicely on Apple native apps.
-It should be possbile, but unlike on web must still use `https` which local environments don't always support well.
-Starting with a testing or staging server is often an easier place to start.
-
-### Add the Associated Domains capability
+Unlike for web integrations, `https` is still required even for `localhost` (web intergrations permit `http://localhost`).
+Depending on your development setup, you may want to immediately add a testing or staging server environment.
 
 > [!TIP]
-> You may have already done this if your existing app supports password autofill.
->
-> Still, fully review this section!
+> If you need help with this, we're happy to help - just send us an email!
 
-More info:
-
-- https://developer.apple.com/documentation/xcode/supporting-associated-domains
-- https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_developer_associated-domains
-
-In XCode, select your root-level project in the Navigator.
-
-Select your Target, and navigate to the Signing & Capabilities tab.
-
-Click `+ Capability` and select `Associated Domains`
+### Set up associated domains
 
 > [!WARNING]
-> This capability is restricted on free Apple Developer accounts.
-> Unfortunately, this means you must have a current, paid account to proceed.
+> This is not SnapAuth-specific, but must be completed or the APIs will immediately return errors.
 
-<!-- Also, personal accounts might not work? -->
+See the [Associated Domains setup guide](/DOMAINS.md) to configure your app to support passkeys.
 
-In the new Associated Domains section, click `+` and add your domain(s):
-
-`webcredentials:yourdomain.tld`
-
-This should match the `RP ID` from the SnapAuth dashboard.
-
-<!-- Must match exactly? Registrable domain match? -->
-
-### Publish the domain association file
-
-Create the assoication file (or, if you already have one for other capabilities, add this section):
-
-```json
-{
-  "webcredentials": {
-    "apps": [
-      "your App ID"
-    ]
-  }
-}
-```
-
-This file must be served at `https://yourdomain.tld/.well-known/apple-app-site-association`.
-
-`curl https://yourdomain.tld/.well-known/apple-app-site-association` to test it.
-
-> [!CAUTION]
-> If you already have a Domain Association file, be sure only to append or merge this change.
-> Do not replace other content in the file, which could lead to breaking other app functionality!
-
-#### Your App ID
-
-Your App ID can be obtained from the Apple developer portal(s):
-
-https://developer.apple.com/account/resources/identifiers/list > Select your app
-
-or
-
-https://developer.apple.com/account#MembershipDetailsCard > Look for Team ID, and
-
-XCode > Your app (the root-level object in Navigator) > Targets > (pick one) > General, look for Bundle Identifier
-
-The App ID is the combination of the Team ID (typically 10 characters) and the Bundle ID (typically configured in-app, frequently in reverse-DNS format): `TeamID.BundleID`
-
-This will result in something like `A5B4C3D2E1.tld.yourdomain.YourAppName`
-
-#### Optional: enable SWC Developer Mode
-
-In production applications, Apple caches the Associated Domains file for about a day.
-For local development, you can bypass this cache:
-
-1) _Add_ a second entry to the Associated Domains section:
-`webcredentials:yourdomain.tld?mode=developer`
-
-2) Enable this feature on your development computer:
-
-```bash
-sudo swcutil developer-mode -e 1
-```
-
-(To disable in the future, run the above command again with `1` replaced with `0`)
-
-You still **must** publish the association file; this only bypasses the cache.
-
-## Usage
-
-SnapAuth will get you up and running with passkeys in a snap!
-
-### Add the SDK
+### Add the SnapAuth SDK
 
 XCode > File > Add Package Dependencies...
 
 In the add package dialog, search for our SDK:
 
-`https://github.com/snapauthapp/sdk-swift`
+```
+https://github.com/snapauthapp/sdk-swift
+```
 
 Select a Dependency Rule and add it to your development target.
 We recommend "Dependency Rule: Up to Next Major Version".
@@ -206,8 +125,3 @@ Even with the Apple-documented configuration, the AutoFill API does not reliably
 ## License
 
 BSD-3-Clause
-
-[^no-watch]: Passkeys are not supported on Apple Watch
-[^no-usb]: Unsupported by Apple (no USB port!)
-[^platform-untested]: Untested, but will probably work
-[^usb-hardware-varies]: Supported at the platform level, but compatibility varies by device. As a general rule, if it physically fits, it should work.

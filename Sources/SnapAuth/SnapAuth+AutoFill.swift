@@ -39,7 +39,7 @@ extension SnapAuth {
         autoFillDelegate = delegate
         Task {
             let response = await api.makeRequest(
-                path: "/auth/createOptions",
+                path: "/assertion/options",
                 body: [:] as [String:String],
                 type: SACreateAuthOptionsResponse.self)
 

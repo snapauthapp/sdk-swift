@@ -124,7 +124,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 
         let body = SACreateRegisterOptionsRequest(user: nil)
         let response = await api.makeRequest(
-            path: "/registration/createOptions",
+            path: "/attestation/options",
             body: body,
             type: SACreateRegisterOptionsResponse.self)
 
@@ -198,7 +198,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         let body = ["user": user]
 
         let response = await api.makeRequest(
-            path: "/auth/createOptions",
+            path: "/assertion/options",
             body: body,
             type: SACreateAuthOptionsResponse.self)
 

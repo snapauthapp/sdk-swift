@@ -103,7 +103,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
 
         Task {
             let response = await api.makeRequest(
-                path: "/registration/process",
+                path: "/attestation/process",
                 body: body,
                 type: SAProcessAuthResponse.self) // TODO: rename this type
             guard case let .success(processAuth) = response else {
@@ -149,7 +149,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
 //        logger.debug("user id \(assertion.userID.base64EncodedString())")
         Task {
             let response = await api.makeRequest(
-                path: "/auth/process",
+                path: "/assertion/process",
                 body: body,
                 type: SAProcessAuthResponse.self)
             guard case let .success(authResponse) = response else {

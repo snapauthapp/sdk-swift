@@ -44,7 +44,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     }
 
     /// Permitted authenticator types
-    public enum Authenticator: CaseIterable {
+    public enum Authenticator: CaseIterable, Sendable {
         /// Allow all available authenticator types to be used
         public static let all = Set(Authenticator.allCases)
 

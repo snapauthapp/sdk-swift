@@ -24,7 +24,8 @@ let package = Package(
         .target(
             name: "SnapAuth",
             swiftSettings: [
-                .define("HARDWARE_KEY_SUPPORT", .when(platforms: [.iOS, .macOS]))
+                .define("HARDWARE_KEY_SUPPORT", .when(platforms: [.iOS, .macOS])),
+                .swiftLanguageVersion(.v6),
             ]),
         .testTarget(
             name: "SnapAuthTests",

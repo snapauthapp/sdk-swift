@@ -107,7 +107,9 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
                 token: processAuth.token,
                 expiresAt: processAuth.expiresAt)
 
-            registerContinuation?.resume(returning: .success(rewrapped))
+            assert(continuation != nil)
+            continuation?.resume(returning: .success(rewrapped))
+            continuation = nil
         }
     }
 
@@ -152,7 +154,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
             let rewrapped = SnapAuthTokenInfo(
                 token: authResponse.token,
                 expiresAt: authResponse.expiresAt)
-
+            /*
             if state == .authenticating {
                 // if AF, send to delegate, otherwise do this
                 authContinuation?.resume(returning: .success(rewrapped))
@@ -162,6 +164,10 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
             } else {
                 assert(false, "Not authenticating or AF in assertion delegate")
             }
+             */
+            assert(continuation == nil)
+            continuation?.resume(returning: .success(rewrapped))
+            continuation = nil
         }
 
     }

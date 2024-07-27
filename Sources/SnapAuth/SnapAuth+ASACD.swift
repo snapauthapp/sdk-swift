@@ -164,17 +164,6 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
             let rewrapped = SnapAuthTokenInfo(
                 token: authResponse.token,
                 expiresAt: authResponse.expiresAt)
-            /*
-            if state == .authenticating {
-                // if AF, send to delegate, otherwise do this
-                authContinuation?.resume(returning: .success(rewrapped))
-            } else if state == .autoFill {
-                assert(autoFillDelegate != nil, "AutoFill w/ no delegate")
-                autoFillDelegate?.snapAuth(didAutoFillWithResult: .success(rewrapped))
-            } else {
-                assert(false, "Not authenticating or AF in assertion delegate")
-            }
-             */
 
             // Short-term BC hack
             if autoFillDelegate != nil {

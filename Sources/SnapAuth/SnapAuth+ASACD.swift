@@ -165,7 +165,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
                 assert(false, "Not authenticating or AF in assertion delegate")
             }
              */
-            assert(continuation == nil)
+            assert(continuation != nil)
             continuation?.resume(returning: .success(rewrapped))
             continuation = nil
         }

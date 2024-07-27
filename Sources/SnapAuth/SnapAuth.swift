@@ -141,7 +141,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         logger.debug("SR perform")
 
         return await withCheckedContinuation { continuation in
-            registerContinuation = continuation
+            self.continuation = continuation
             controller.performRequests()
 
         }
@@ -213,7 +213,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         controller.delegate = self
         controller.presentationContextProvider = self
         return await withCheckedContinuation { continuation in
-            authContinuation = continuation
+            self.continuation = continuation
             logger.debug("perform requests")
             controller.performRequests()
         }

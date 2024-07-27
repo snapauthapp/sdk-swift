@@ -58,12 +58,10 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     /// Reinitializes internal state before starting a request.
     internal func reset() -> Void {
         self.authenticatingUser = nil
-        cancelPendingRequest()
-        state = .idle
-    }
-
-    private func cancelPendingRequest() {
+        continuation?.resume(returning: .failure(.newRequestStarting))
+        continuation = nil
         logger.debug("Canceling pending requests")
+        // Do this after the continuation is cleared out, so it doesn't run twice and break
         if authController != nil {
             #if !os(tvOS)
             if #available(iOS 16.0, macOS 13.0, visionOS 1.0, *) {

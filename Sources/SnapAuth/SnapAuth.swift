@@ -116,7 +116,6 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     ) async -> SnapAuthResult {
         reset()
         self.anchor = anchor
-        state = .registering
 
         let body = SACreateRegisterOptionsRequest(user: nil)
         let response = await api.makeRequest(
@@ -189,7 +188,6 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         reset()
         self.anchor = anchor
         self.authenticatingUser = user
-        state = .authenticating
 
         let body = ["user": user]
 

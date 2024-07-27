@@ -53,16 +53,12 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
 
     /// Sends the error to the appropriate delegate method and resets the internal state back to idle
     private func sendError(_ error: SnapAuthError) {
-        assert(continuation != nil || autoFillDelegate != nil) // Maybe not?
-        if continuation != nil {
-            logger.debug("sendError contn")
-        } else if autoFillDelegate != nil {
-            logger.debug("sendError af")
-            // no-op
-            autoFillDelegate = nil
-        } else {
-            logger.notice("unreachable!")
-        }
+        // One or the other should eb set, but not both
+        assert(
+            (continuation != nil && autoFillDelegate == nil)
+            || (continuation == nil && autoFillDelegate != nil)
+        )
+        autoFillDelegate = nil
         continuation?.resume(returning: .failure(error))
         continuation = nil
     }

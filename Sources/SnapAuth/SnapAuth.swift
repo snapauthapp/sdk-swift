@@ -23,9 +23,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 
     internal var authController: ASAuthorizationController?
 
-    internal var registerContinuation: CheckedContinuation<SnapAuthResult, Never>?
-    internal var authContinuation: CheckedContinuation<SnapAuthResult, Never>?
-
+    internal var continuation: CheckedContinuation<SnapAuthResult, Never>?
 
     /// - Parameters:
     ///   - publishableKey: Your SnapAuth publishable key. This can be obtained

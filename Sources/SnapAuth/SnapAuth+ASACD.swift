@@ -52,18 +52,9 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
 
     /// Sends the error to the appropriate delegate method and resets the internal state back to idle
     private func sendError(_ error: SnapAuthError) {
-        switch state {
-        case .authenticating:
-            authContinuation?.resume(returning: .failure(error))
-        case .registering:
-            registerContinuation?.resume(returning: .failure(error))
-        case .idle:
-            logger.error("Tried to send error in idle state")
-        case .autoFill:
-            // No-op for now. TODO: decide what errors to send
-            break
-        }
-        state = .idle
+        assert(continuation != nil) // Maybe not?
+        continuation?.resume(returning: .failure(error))
+        continuation = nil
     }
 
     private func handleRegistration(

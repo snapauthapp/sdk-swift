@@ -225,19 +225,6 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         // Sometimes the controller just WILL NOT CALL EITHER DELEGATE METHOD, so... yeah.
         // Maybe start a timer and auto-fail if neither delegate method runs in time?
     }
-
-    internal var state: State = .idle
-}
-
-/// SDK state
-///
-/// This helps with sending appropriate failure messages back to delegates,
-/// since all AS delegate failure paths go to a single place.
-enum State {
-    case idle
-    case registering
-    case authenticating
-    case autoFill
 }
 
 public enum AuthenticatingUser {

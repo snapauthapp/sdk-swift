@@ -8,6 +8,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         controller: ASAuthorizationController,
         didCompleteWithError error: Error
     ) {
+        logger.debug("ASACD error")
         guard let asError = error as? ASAuthorizationError else {
             logger.error("authorizationController didCompleteWithError error was not an ASAuthorizationError")
             sendError(.unknown)

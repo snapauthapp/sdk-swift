@@ -65,6 +65,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         if authController != nil {
             #if !os(tvOS)
             if #available(iOS 16.0, macOS 13.0, visionOS 1.0, *) {
+                logger.debug("Canceling existing auth controller")
                 authController!.cancel()
             }
             #endif

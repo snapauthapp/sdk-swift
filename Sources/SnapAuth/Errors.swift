@@ -73,12 +73,15 @@ extension ASAuthorizationError.Code {
         case .notHandled: return .notHandled
         case .notInteractive: return .notInteractive
         @unknown default:
+            /* This is (AFAICT) correct, but doesn't seem to work on the Github
+               Actions runner version.
             // This case only exists on new OS platforms
             if #available(iOS 18, visionOS 2, macOS 15, tvOS 18, *) {
                 if case .matchedExcludedCredential = self {
                     return .matchedExcludedCredential
                 }
             }
+             */
             return .unknown
         }
     }

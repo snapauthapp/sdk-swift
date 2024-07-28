@@ -110,6 +110,11 @@ struct SignInView: View {
 
 ### Autofill-assisted Requests
 
+> [!NOTE]
+> Autofill is (at present) only supported on iOS/iPadOS >= 16 and visionOS.
+> On other platforms or OS versions, this will immediately return a failure code
+> indicating a lack of platform support.
+
 To have the system suggest a passkey when a username field is focused, make the following additions to start the process and handle the result:
 
 1. Add `.textContentType(.username)` to the username `TextField`, if not already set:
@@ -142,7 +147,6 @@ func autofill() {
   }
 }
 ```
-
 
 ## Known issues
 

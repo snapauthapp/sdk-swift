@@ -108,6 +108,42 @@ struct SignInView: View {
 }
 ```
 
+### Autofill-assisted Requests
+
+To have the system suggest a passkey when a username field is focused, there ar
+
+1. Add `.textContentType(.username)` to the username `TextField`, if not already set:
+
+```swift
+TextField("Username", text: $userName)
+  .textContentType(.username)
+```
+
+2. Run the autofill API when the view is presented:
+
+```swift
+// ...
+var body: some View {
+  VStack {
+    // ...
+  }
+  .onAppear(perform: autofill) // <-- Add this
+}
+
+// And this
+func autofill() {
+  Task {
+    let autofillResult = await snapAuth.handleAutofill()
+    guard case .success(let auth) = autofillResult else {
+      // Autofill failed, this is common and generally safe to ignore
+      return
+    }
+    // Send auth.token to your backend to sign in the user, as above
+  }
+}
+```
+
+
 ## Known issues
 
 In our testing, the sign in dialog in tvOS doesn't open, at least in the simulator.

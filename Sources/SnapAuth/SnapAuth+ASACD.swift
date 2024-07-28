@@ -8,6 +8,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         controller: ASAuthorizationController,
         didCompleteWithError error: Error
     ) {
+        logger.debug("ASACD error")
         guard let asError = error as? ASAuthorizationError else {
             logger.error("authorizationController didCompleteWithError error was not an ASAuthorizationError")
             sendError(.unknown)
@@ -52,18 +53,14 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
 
     /// Sends the error to the appropriate delegate method and resets the internal state back to idle
     private func sendError(_ error: SnapAuthError) {
-        switch state {
-        case .authenticating:
-            authContinuation?.resume(returning: .failure(error))
-        case .registering:
-            registerContinuation?.resume(returning: .failure(error))
-        case .idle:
-            logger.error("Tried to send error in idle state")
-        case .autoFill:
-            // No-op for now. TODO: decide what errors to send
-            break
-        }
-        state = .idle
+        // One or the other should eb set, but not both
+        assert(
+            (continuation != nil && autoFillDelegate == nil)
+            || (continuation == nil && autoFillDelegate != nil)
+        )
+        autoFillDelegate = nil
+        continuation?.resume(returning: .failure(error))
+        continuation = nil
     }
 
     private func handleRegistration(
@@ -116,7 +113,9 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
                 token: processAuth.token,
                 expiresAt: processAuth.expiresAt)
 
-            registerContinuation?.resume(returning: .success(rewrapped))
+            assert(continuation != nil)
+            continuation?.resume(returning: .success(rewrapped))
+            continuation = nil
         }
     }
 
@@ -162,15 +161,16 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
                 token: authResponse.token,
                 expiresAt: authResponse.expiresAt)
 
-            if state == .authenticating {
-                // if AF, send to delegate, otherwise do this
-                authContinuation?.resume(returning: .success(rewrapped))
-            } else if state == .autoFill {
-                assert(autoFillDelegate != nil, "AutoFill w/ no delegate")
-                autoFillDelegate?.snapAuth(didAutoFillWithResult: .success(rewrapped))
-            } else {
-                assert(false, "Not authenticating or AF in assertion delegate")
+            // Short-term BC hack
+            if autoFillDelegate != nil {
+                autoFillDelegate!.snapAuth(didAutoFillWithResult: .success(rewrapped))
+                autoFillDelegate = nil
+                return
             }
+
+            assert(continuation != nil)
+            continuation?.resume(returning: .success(rewrapped))
+            continuation = nil
         }
 
     }

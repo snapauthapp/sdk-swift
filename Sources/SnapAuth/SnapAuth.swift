@@ -23,9 +23,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 
     internal var authController: ASAuthorizationController?
 
-    internal var registerContinuation: CheckedContinuation<SnapAuthResult, Never>?
-    internal var authContinuation: CheckedContinuation<SnapAuthResult, Never>?
-
+    internal var continuation: CheckedContinuation<SnapAuthResult, Never>?
 
     /// - Parameters:
     ///   - publishableKey: Your SnapAuth publishable key. This can be obtained
@@ -60,15 +58,14 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     /// Reinitializes internal state before starting a request.
     internal func reset() -> Void {
         self.authenticatingUser = nil
-        cancelPendingRequest()
-        state = .idle
-    }
-
-    private func cancelPendingRequest() {
+        continuation?.resume(returning: .failure(.newRequestStarting))
+        continuation = nil
         logger.debug("Canceling pending requests")
+        // Do this after the continuation is cleared out, so it doesn't run twice and break
         if authController != nil {
             #if !os(tvOS)
             if #available(iOS 16.0, macOS 13.0, visionOS 1.0, *) {
+                logger.debug("Canceling existing auth controller")
                 authController!.cancel()
             }
             #endif
@@ -120,7 +117,6 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     ) async -> SnapAuthResult {
         reset()
         self.anchor = anchor
-        state = .registering
 
         let body = SACreateRegisterOptionsRequest(user: nil)
         let response = await api.makeRequest(
@@ -146,7 +142,8 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         logger.debug("SR perform")
 
         return await withCheckedContinuation { continuation in
-            registerContinuation = continuation
+            assert(self.continuation == nil)
+            self.continuation = continuation
             controller.performRequests()
 
         }
@@ -193,7 +190,6 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         reset()
         self.anchor = anchor
         self.authenticatingUser = user
-        state = .authenticating
 
         let body = ["user": user]
 
@@ -219,7 +215,8 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         controller.delegate = self
         controller.presentationContextProvider = self
         return await withCheckedContinuation { continuation in
-            authContinuation = continuation
+            assert(self.continuation == nil)
+            self.continuation = continuation
             logger.debug("perform requests")
             controller.performRequests()
         }
@@ -227,19 +224,6 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         // Sometimes the controller just WILL NOT CALL EITHER DELEGATE METHOD, so... yeah.
         // Maybe start a timer and auto-fail if neither delegate method runs in time?
     }
-
-    internal var state: State = .idle
-}
-
-/// SDK state
-///
-/// This helps with sending appropriate failure messages back to delegates,
-/// since all AS delegate failure paths go to a single place.
-enum State {
-    case idle
-    case registering
-    case authenticating
-    case autoFill
 }
 
 public enum AuthenticatingUser {

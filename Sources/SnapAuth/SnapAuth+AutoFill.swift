@@ -35,7 +35,6 @@ extension SnapAuth {
         presentationContextProvider: ASAuthorizationControllerPresentationContextProviding
     ) {
         reset()
-        state = .autoFill
         autoFillDelegate = delegate
         Task {
             let response = await api.makeRequest(

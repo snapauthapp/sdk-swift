@@ -10,6 +10,10 @@ import AuthenticationServices
 extension SnapAuth {
 
     /// Starts the AutoFill process using a default ASPresentationAnchor
+    ///
+    /// This uses APIs that are unavailable prior to iOS 16, and will
+    /// immediately return an .unsupportedOnPlatform error code on devices where
+    /// it cannot run.
     public func handleAutoFill() async -> SnapAuthResult {
         await handleAutoFill(anchor: .default)
     }

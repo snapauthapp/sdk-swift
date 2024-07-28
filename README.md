@@ -108,11 +108,53 @@ struct SignInView: View {
 }
 ```
 
+### Autofill-assisted Requests
+
+> [!NOTE]
+> Autofill is (at present) only supported on iOS/iPadOS >= 16 and visionOS.
+> On other platforms or OS versions, this will immediately return a failure code
+> indicating a lack of platform support.
+
+To have the system suggest a passkey when a username field is focused, make the following additions to start the process and handle the result:
+
+1. Add `.textContentType(.username)` to the username `TextField`, if not already set:
+
+```swift
+TextField("Username", text: $userName)
+  .textContentType(.username) // <-- Add this
+```
+
+2. Run the autofill API when the view is presented:
+
+```swift
+// ...
+var body: some View {
+  VStack {
+    // ...
+  }
+  .onAppear(perform: autofill) // <-- Add this
+}
+
+// And this
+func autofill() {
+  Task {
+    let autofillResult = await snapAuth.handleAutofill()
+    guard case .success(let auth) = autofillResult else {
+      // Autofill failed, this is common and generally safe to ignore
+      return
+    }
+    // Send auth.token to your backend to sign in the user, as above
+  }
+}
+```
+
 ## Known issues
 
 In our testing, the sign in dialog in tvOS doesn't open, at least in the simulator.
 
 Even with the Apple-documented configuration, the AutoFill API does not reliably provide passkey suggestions.
+There appears to be a display issue inside the SwiftUI and UIKit internals causing the suggestion bar to not render consistently.
+We have filed a Feedback with Apple, but this is outside of our control.
 
 ## Useful resources
 

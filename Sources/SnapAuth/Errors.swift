@@ -2,6 +2,12 @@ public enum SnapAuthError: Error {
     /// The network request was disrupted. This is generally safe to retry.
     case networkInterruption
 
+    /// A new request is starting, so the one in flight was canceled
+    case newRequestStarting
+
+    /// This needs APIs that are not supported on the current platform
+    case unsupportedOnPlatform
+
     // MARK: Internal errors, which could represent SnapAuth bugs
 
     /// The SDK received a response from SnapAuth, but it arrived in an

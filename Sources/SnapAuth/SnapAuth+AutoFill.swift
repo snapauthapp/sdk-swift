@@ -10,54 +10,58 @@ import AuthenticationServices
 extension SnapAuth {
 
     /// Starts the AutoFill process using a default ASPresentationAnchor
-    @available(iOS 16.0, *)
-    public func handleAutoFill(delegate: SnapAuthAutoFillDelegate) {
-        handleAutoFill(delegate: delegate, anchor: .default)
+    ///
+    /// This uses APIs that are unavailable prior to iOS 16, and will
+    /// immediately return an .unsupportedOnPlatform error code on devices where
+    /// it cannot run.
+    public func handleAutoFill() async -> SnapAuthResult {
+        await handleAutoFill(anchor: .default)
     }
 
     /// Use the specified anchor.
     /// This may be exposed publiy if needed, but the intent/goal is the default is (almost) always correct
-    @available(iOS 16.0, *)
     internal func handleAutoFill(
-        delegate: SnapAuthAutoFillDelegate,
         anchor: ASPresentationAnchor
-    ) {
+    ) async -> SnapAuthResult {
         self.anchor = anchor
 
-        handleAutoFill(delegate: delegate, presentationContextProvider: self)
+        return await handleAutoFill(presentationContextProvider: self)
     }
 
     /// Use the specified presentationContextProvider.
     /// Like with handleAutoFill(anchor:) this could get publicly exposed later but is for the "file a bug" case
-    @available(iOS 16.0, *)
     internal func handleAutoFill(
-        delegate: SnapAuthAutoFillDelegate,
         presentationContextProvider: ASAuthorizationControllerPresentationContextProviding
-    ) {
+    ) async -> SnapAuthResult {
         reset()
-        state = .autoFill
-        autoFillDelegate = delegate
-        Task {
-            let response = await api.makeRequest(
-                path: "/assertion/options",
-                body: [:] as [String:String],
-                type: SACreateAuthOptionsResponse.self)
+        // TODO: filter other unsupported platforms (do this better than the top-level ifdef)
+        guard #available(iOS 16, *) else {
+            return .failure(.unsupportedOnPlatform)
+        }
 
-            guard case let .success(options) = response else {
-                // TODO: decide how to handle AutoFill errors
-                return
-            }
+        let response = await self.api.makeRequest(
+            path: "/assertion/options",
+            body: [:] as [String:String],
+            type: SACreateAuthOptionsResponse.self)
 
-            // AutoFill always only uses passkeys, so this is not configurable
-            let authRequests = buildAuthRequests(
-                from: options,
-                authenticators: [.passkey])
+        guard case let .success(options) = response else {
+            // TODO: decide how to handle AutoFill errors
+            return .failure(response.getError()!)
+        }
 
-            let controller = ASAuthorizationController(authorizationRequests: authRequests)
-            authController = controller
-            controller.delegate = self
-            controller.presentationContextProvider = presentationContextProvider
-            logger.debug("AF perform")
+        // AutoFill always only uses passkeys, so this is not configurable
+        let authRequests = self.buildAuthRequests(
+            from: options,
+            authenticators: [.passkey])
+
+        let controller = ASAuthorizationController(authorizationRequests: authRequests)
+        authController = controller
+        controller.delegate = self
+        controller.presentationContextProvider = presentationContextProvider
+        logger.debug("AF perform")
+        return await withCheckedContinuation { continuation in
+            assert(self.continuation == nil)
+            self.continuation = continuation // as! CheckedContinuation<SnapAuthResult, Never>
             controller.performAutoFillAssistedRequests()
         }
     }

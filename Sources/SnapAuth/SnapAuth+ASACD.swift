@@ -54,11 +54,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
     /// Sends the error to the appropriate delegate method and resets the internal state back to idle
     private func sendError(_ error: SnapAuthError) {
         // One or the other should eb set, but not both
-        assert(
-            (continuation != nil && autoFillDelegate == nil)
-            || (continuation == nil && autoFillDelegate != nil)
-        )
-        autoFillDelegate = nil
+        assert(continuation != nil)
         continuation?.resume(returning: .failure(error))
         continuation = nil
     }
@@ -160,13 +156,6 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
             let rewrapped = SnapAuthTokenInfo(
                 token: authResponse.token,
                 expiresAt: authResponse.expiresAt)
-
-            // Short-term BC hack
-            if autoFillDelegate != nil {
-                autoFillDelegate!.snapAuth(didAutoFillWithResult: .success(rewrapped))
-                autoFillDelegate = nil
-                return
-            }
 
             assert(continuation != nil)
             continuation?.resume(returning: .success(rewrapped))

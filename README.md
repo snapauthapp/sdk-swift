@@ -149,6 +149,8 @@ func autofill() {
 In our testing, the sign in dialog in tvOS doesn't open, at least in the simulator.
 
 Even with the Apple-documented configuration, the AutoFill API does not reliably provide passkey suggestions.
+There appears to be a display issue inside the SwiftUI and UIKit internals causing the suggestion bar to not render consistently.
+We have filed a Feedback with Apple, but this is outside of our control.
 
 ## Useful resources
 

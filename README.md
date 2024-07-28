@@ -110,13 +110,13 @@ struct SignInView: View {
 
 ### Autofill-assisted Requests
 
-To have the system suggest a passkey when a username field is focused, there ar
+To have the system suggest a passkey when a username field is focused, make the following additions to start the process and handle the result:
 
 1. Add `.textContentType(.username)` to the username `TextField`, if not already set:
 
 ```swift
 TextField("Username", text: $userName)
-  .textContentType(.username)
+  .textContentType(.username) // <-- Add this
 ```
 
 2. Run the autofill API when the view is presented:

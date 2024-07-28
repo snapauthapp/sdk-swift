@@ -40,8 +40,6 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
 
     /// Sends the error to the appropriate delegate method and resets the internal state back to idle
     private func sendError(_ error: SnapAuthError) {
-        // One or the other should eb set, but not both
-        assert(continuation != nil)
         continuation?.resume(returning: .failure(error))
         continuation = nil
     }

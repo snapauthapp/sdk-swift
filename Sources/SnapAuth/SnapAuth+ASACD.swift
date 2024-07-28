@@ -15,20 +15,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
             return
         }
 
-        switch asError.code {
-        case .canceled:
-            sendError(.canceled)
-        case .failed:
-            sendError(.failed)
-        case .invalidResponse:
-            sendError(.invalidResponse)
-        case .notHandled:
-            sendError(.notHandled)
-        case .notInteractive:
-            sendError(.notInteractive)
-        @unknown default:
-            sendError(.unknown)
-        }
+        sendError(asError.code.snapAuthError)
         // The start call can SILENTLY produce this error which never makes it into this handler
         // ASAuthorizationController credential request failed with error: Error Domain=com.apple.AuthenticationServices.AuthorizationError Code=1004 "(null)"
     }

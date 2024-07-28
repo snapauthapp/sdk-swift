@@ -1,3 +1,5 @@
+import AuthenticationServices
+
 public enum SnapAuthError: Error {
     /// The network request was disrupted. This is generally safe to retry.
     case networkInterruption
@@ -54,4 +56,24 @@ public enum SnapAuthError: Error {
 
     // (Usage unknown, Apple docs are not clear)
     case notInteractive
+
+    /// Registration matched an excluded credential. Typically this means that
+    /// the credential has already been registered.
+    case matchedExcludedCredential
+}
+
+/// Extension to standardize converstion of AS error codes into SnapAuth codes
+extension ASAuthorizationError.Code {
+    var snapAuthError: SnapAuthError {
+        switch self {
+        case .canceled: return .canceled
+        case .failed: return .failed
+        case .unknown: return .unknown
+        case .invalidResponse: return .invalidResponse
+        case .notHandled: return .notHandled
+        case .notInteractive: return .notInteractive
+        case .matchedExcludedCredential: return .matchedExcludedCredential
+        @unknown default: return .unknown
+        }
+    }
 }

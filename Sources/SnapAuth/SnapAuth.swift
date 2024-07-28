@@ -7,6 +7,7 @@ import os
 /// This is used to start the passkey registration and authentication processes,
 /// typically in the `action` of a `Button`
 @available(macOS 12.0, iOS 15.0, tvOS 16.0, *)
+@MainActor
 public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDelegate
 
     internal let api: SnapAuthClient
@@ -223,7 +224,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     }
 }
 
-public enum AuthenticatingUser {
+public enum AuthenticatingUser: Sendable {
     /// Your application's internal identifier for the user (usually a primary key)
     case id(String)
     /// The user's handle, such as a username or email address

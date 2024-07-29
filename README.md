@@ -6,6 +6,10 @@ SnapAuth will let you add passkey support to your native app in a snap!
 
 🚧 This SDK is in beta! 🚧
 
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fsnapauthapp%2Fsdk-swift%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/snapauthapp/sdk-swift)
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fsnapauthapp%2Fsdk-swift%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/snapauthapp/sdk-swift)
+
+[![Test](https://github.com/snapauthapp/sdk-swift/actions/workflows/test.yml/badge.svg)](https://github.com/snapauthapp/sdk-swift/actions/workflows/test.yml)
 ![GitHub License](https://img.shields.io/github/license/snapauthapp/sdk-typescript)
 
 - [SnapAuth Homepage](https://www.snapauth.app?utm_source=GitHub&utm_campaign=sdk&utm_content=sdk-swift)
@@ -25,7 +29,9 @@ macOS | ✅ 12.0+ | ✅ 12.0+ |
 macOS (Catalyst) | ⚠️ | ⚠️ | Still being tested (should work)
 visionOS | ✅ 1.0+ | ❌ | Hardware keys are not supported on visionOS
 tvOS | ⚠️ 16.0+ | ❌ | Still being tested, hardware keys are not supported on tvOS
-watchOS | ❌ | ❌ | Apple Watch does not support passkeys
+
+Apple Watch does not support passkeys or hardware keys, so watchOS is not supported by this SDK.
+If support is added in a future watchOS release, we will do the same!
 
 ## Getting Started
 

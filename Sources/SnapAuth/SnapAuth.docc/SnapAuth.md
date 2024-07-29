@@ -13,7 +13,7 @@ If and when it does, we'll add support as well.
 
 ## Getting Started
 
-To use SnapAuth, you'll first needd to register an account: [](https://www.snapauth.app/register).
+To use SnapAuth, you'll first need to register an account: [](https://www.snapauth.app/register).
 Registration is free, but SnapAuth is a paid service and you'll be limited to a small number of users during the free trial.
 
 Once you register, you'll be taken to our [dashboard](https://dashboard.snapauth.app).

@@ -1,19 +1,29 @@
 # ``SnapAuth``
 
-The official SnapAuth SDK for Apple platforms.
+The official [SnapAuth](https://www.snapauth.app) SDK for Apple platforms.
 
 ## Overview
 
 SnapAuth allows you to quickly, easily, and reliably add passkeys to your web and native apps.
 You can be up and running in minutes on all platforms without ever having to look at `AuthenticationServices`.
 
-This SDK supports all native Apple platforms that permit passkey use (everything but Apple Watch).
+This SDK supports all native Apple platforms that permit passkey use - iOS, iPadOS, macOS, visionOS, and tvOS.
+Apple Watch and watchOS do not support passkeys.
+If and when it does, we'll add support as well.
+
+## Getting Started
+
+To use SnapAuth, you'll first needd to register an account: [](https://www.snapauth.app/register).
+Registration is free, but SnapAuth is a paid service and you'll be limited to a small number of users during the free trial.
+
+Once you register, you'll be taken to our [dashboard](https://dashboard.snapauth.app).
+In there, you can get access to your `publishable key`, which you'll need to use SnapAuth in your native app.
 
 ## Topics
 
 ### Setup
 
-To start, import the SnapAuth SDK and provide it your _publishable key_ from the [SnapAuth dashboard](https://dashboard.snapauth.app).
+To start, import the SnapAuth SDK and provide it your _publishable key_ from the dashboard.
 
 ```swift
 import SnapAuth

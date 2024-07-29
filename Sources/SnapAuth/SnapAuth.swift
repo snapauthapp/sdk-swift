@@ -223,6 +223,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     }
 }
 
+/// A representation of the user that is trying to authenticate.
 public enum AuthenticatingUser {
     /// Your application's internal identifier for the user (usually a primary key)
     case id(String)

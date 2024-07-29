@@ -1,0 +1,7 @@
+# Swift Package Index
+version: 1
+builder:
+  configs:
+    - documentation_targets:
+        - SnapAuth
+      platform: ios

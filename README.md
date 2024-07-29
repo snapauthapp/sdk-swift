@@ -4,13 +4,12 @@ This is the official Swift SDK for [SnapAuth](https://www.snapauth.app?utm_sourc
 
 SnapAuth will let you add passkey support to your native app in a snap!
 
-🚧 This SDK is in beta! 🚧
-
-[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fsnapauthapp%2Fsdk-swift%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/snapauthapp/sdk-swift)
-[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fsnapauthapp%2Fsdk-swift%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/snapauthapp/sdk-swift)
+![GitHub Release](https://img.shields.io/github/v/release/snapauthapp/sdk-swift)
+[![Swift Versions](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fsnapauthapp%2Fsdk-swift%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/snapauthapp/sdk-swift)
+[![Supported Platforms](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fsnapauthapp%2Fsdk-swift%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/snapauthapp/sdk-swift)
 
 [![Test](https://github.com/snapauthapp/sdk-swift/actions/workflows/test.yml/badge.svg)](https://github.com/snapauthapp/sdk-swift/actions/workflows/test.yml)
-![GitHub License](https://img.shields.io/github/license/snapauthapp/sdk-typescript)
+[![GitHub License](https://img.shields.io/github/license/snapauthapp/sdk-typescript)](https://github.com/snapauthapp/sdk-swift/blob/main/LICENSE)
 
 - [SnapAuth Homepage](https://www.snapauth.app?utm_source=GitHub&utm_campaign=sdk&utm_content=sdk-swift)
 - [Docs](https://docs.snapauth.app)

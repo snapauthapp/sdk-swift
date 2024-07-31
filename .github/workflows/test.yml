@@ -15,13 +15,13 @@ jobs:
         os:
          # - ubuntu-latest
          - macos-latest
-        swift:
-          - "5.10"
+        # swift:
+        #   - "5.10"
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: swift-actions/setup-swift@e1dca7c4a36344146bbc2803f0d538462477bb37 # 2.0.0
-        with:
-          swift-version: ${{ matrix.swift }}
+      # - uses: swift-actions/setup-swift@e1dca7c4a36344146bbc2803f0d538462477bb37 # 2.0.0
+      #   with:
+      #     swift-version: ${{ matrix.swift }}
       - uses: actions/checkout@v4
       - name: Build
         run: swift build

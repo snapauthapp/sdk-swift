@@ -4,6 +4,8 @@ import AuthenticationServices
 @available(macOS 12.0, iOS 15.0, visionOS 1.0, tvOS 16.0, *)
 extension SnapAuth: ASAuthorizationControllerDelegate {
 
+    /// Delegate method for ASAuthorizationController.
+    /// This should not be called directly.
     public func authorizationController(
         controller: ASAuthorizationController,
         didCompleteWithError error: Error
@@ -20,6 +22,8 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         // ASAuthorizationController credential request failed with error: Error Domain=com.apple.AuthenticationServices.AuthorizationError Code=1004 "(null)"
     }
 
+    /// Delegate method for ASAuthorizationController.
+    /// This should not be called directly.
     public func authorizationController(
         controller: ASAuthorizationController,
         didCompleteWithAuthorization authorization: ASAuthorization
@@ -38,7 +42,6 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         }
     }
 
-    /// Sends the error to the appropriate delegate method and resets the internal state back to idle
     private func sendError(_ error: SnapAuthError) {
         continuation?.resume(returning: .failure(error))
         continuation = nil
@@ -47,7 +50,6 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
     private func handleRegistration(
         _ registration: ASAuthorizationPublicKeyCredentialRegistration
     ) {
-        // Decode, send to SA, hand back resposne via delegate method
         logger.info("got a registration response")
 
         let credentialId = Base64URL(from: registration.credentialID)

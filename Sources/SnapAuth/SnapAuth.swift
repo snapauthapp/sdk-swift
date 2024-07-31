@@ -71,13 +71,16 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         }
     }
 
-    /// Starts the passkey enrollment process.
-    /// Upon completion, the delegate will be called with either success or failure.
+    /// Starts the passkey enrollment process by displaying a system dialog.
+    ///
+    /// The task will complete when the user approves or rejects the request, or
+    /// if the request cannot be fulfilled.
+    ///
     /// - Parameters:
-    ///   - name: The name of the user.
+    ///   - name: The name of the user. This should be a username or handle.
     ///   - displayName: The proper name of the user. If omitted, name will be used.
     ///   - authenticators: What authenticators should be permitted. If omitted,
-    ///   all available types for the platform will be allowed.
+    ///     all available types for the platform will be allowed.
     ///
     /// - Returns: A `Result` containing either `SnapAuthTokenInfo` upon success
     ///   or a `SnapAuthError` upon failure.
@@ -85,7 +88,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     /// # Example
     /// ```swift
     /// Task {
-    ///     let result = await snapAuth.startRegister(name: name)
+    ///     let result = await snapAuth.startRegister(name: "username@example.com")
     ///     switch result {
     ///     case .success(let registration):
     ///         // send registration.token to your backend to create the credential
@@ -149,12 +152,15 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 
     internal var authenticatingUser: AuthenticatingUser?
 
-    /// Starts the authentication process.
-    /// Upon completion, the delegate will be called with either success or failure.
+    /// Starts the authentication process by displaying a system dialog.
+    ///
+    /// The task will complete when the user approves or rejects the request, or
+    /// if the request cannot be fulfilled.
     ///
     /// - Parameters:
     ///   - user: The authenticating user's `id` or `handle`
-    ///   - authenticators: What authenticators should be permitted. If omitted, all available types for the platform will be allowed.
+    ///   - authenticators: What authenticators should be permitted. If omitted,
+    ///     all available types for the platform will be allowed.
     ///
     ///
     /// - Returns: A `Result` containing either `SnapAuthTokenInfo` upon success
@@ -163,7 +169,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     /// # Example
     /// ```swift
     /// Task {
-    ///     let result = await snapAuth.startAuth(.handle(userName))
+    ///     let result = await snapAuth.startAuth(.handle("username@example.com"))
     ///     switch result {
     ///     case .success(let auth):
     ///         // send auth.token to your backend to verify

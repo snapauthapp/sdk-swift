@@ -23,11 +23,12 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 
     internal var continuation: CheckedContinuation<SnapAuthResult, Never>?
 
+    /// Initialize the SnapAuth SDK
     /// - Parameters:
     ///   - publishableKey: Your SnapAuth publishable key. This can be obtained
     ///   from the [SnapAuth dashboard](https://dashboard.snapauth.app)
-    ///   - urlBase: A custom URL base for the SnapAuth API. This is generally
-    ///   for internal use.
+    ///   - urlBase: A custom URL base for the SnapAuth API. This should usually
+    ///   be omitted and left as the default value.
     public init(
        publishableKey: String,
        urlBase: URL = URL(string: "https://api.snapauth.app")!
@@ -224,6 +225,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     }
 }
 
+/// A representation of the user that is trying to authenticate.
 public enum AuthenticatingUser: Sendable {
     /// Your application's internal identifier for the user (usually a primary key)
     case id(String)

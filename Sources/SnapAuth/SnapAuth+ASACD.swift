@@ -4,37 +4,40 @@ import AuthenticationServices
 @available(macOS 12.0, iOS 15.0, visionOS 1.0, tvOS 16.0, *)
 extension SnapAuth: ASAuthorizationControllerDelegate {
 
-    public func authorizationController(
+    nonisolated public func authorizationController(
         controller: ASAuthorizationController,
         didCompleteWithError error: Error
     ) {
         logger.debug("ASACD error")
-        guard let asError = error as? ASAuthorizationError else {
-            logger.error("authorizationController didCompleteWithError error was not an ASAuthorizationError")
-            sendError(.unknown)
-            return
-        }
+        Task { @MainActor in
+            guard let asError = error as? ASAuthorizationError else {
+                logger.error("authorizationController didCompleteWithError error was not an ASAuthorizationError")
+                sendError(.unknown)
+                return
+            }
 
-        sendError(asError.code.snapAuthError)
-        // The start call can SILENTLY produce this error which never makes it into this handler
-        // ASAuthorizationController credential request failed with error: Error Domain=com.apple.AuthenticationServices.AuthorizationError Code=1004 "(null)"
+            sendError(asError.code.snapAuthError)
+            // The start call can SILENTLY produce this error which never makes it into this handler
+            // ASAuthorizationController credential request failed with error: Error Domain=com.apple.AuthenticationServices.AuthorizationError Code=1004 "(null)"
+        }
     }
 
-    public func authorizationController(
+    nonisolated public func authorizationController(
         controller: ASAuthorizationController,
         didCompleteWithAuthorization authorization: ASAuthorization
     ) {
         logger.debug("ASACD did complete")
 
-
-        switch authorization.credential {
-        case is ASAuthorizationPublicKeyCredentialAssertion:
-            handleAssertion(authorization.credential as! ASAuthorizationPublicKeyCredentialAssertion)
-        case is ASAuthorizationPublicKeyCredentialRegistration:
-            handleRegistration(authorization.credential as! ASAuthorizationPublicKeyCredentialRegistration)
-        default:
-            logger.error("Unexpected credential type \(String(describing: type(of: authorization.credential)))")
-            sendError(.unexpectedAuthorizationType)
+        Task { @MainActor in
+            switch authorization.credential {
+            case is ASAuthorizationPublicKeyCredentialAssertion:
+                handleAssertion(authorization.credential as! ASAuthorizationPublicKeyCredentialAssertion)
+            case is ASAuthorizationPublicKeyCredentialRegistration:
+                handleRegistration(authorization.credential as! ASAuthorizationPublicKeyCredentialRegistration)
+            default:
+                logger.error("Unexpected credential type \(String(describing: type(of: authorization.credential)))")
+                sendError(.unexpectedAuthorizationType)
+            }
         }
     }
 
@@ -155,4 +158,3 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
 //        }
 //    }
 }
-

@@ -3,6 +3,8 @@ import AuthenticationServices
 // MARK: ASAuthorizationControllerPresentationContextProviding
 @available(macOS 12.0, iOS 15.0, tvOS 16.0, visionOS 1.0, *)
 extension SnapAuth: ASAuthorizationControllerPresentationContextProviding {
+    /// Delegate method for ASAuthorizationController.
+    /// This should not be called directly.
     public func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
         guard anchor != nil else {
             // There's currently no logical path here since the three

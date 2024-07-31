@@ -3,18 +3,22 @@
 This is the official Swift SDK for [SnapAuth](https://www.snapauth.app?utm_source=GitHub&utm_campaign=sdk&utm_content=sdk-swift).
 
 SnapAuth will let you add passkey support to your native app in a snap!
+Add strong multi-factor authentication or go fully passwordless while maintaining a great, frictionless user experience.
 
-![GitHub Release](https://img.shields.io/github/v/release/snapauthapp/sdk-swift)
-[![Swift Versions](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fsnapauthapp%2Fsdk-swift%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/snapauthapp/sdk-swift)
-[![Supported Platforms](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fsnapauthapp%2Fsdk-swift%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/snapauthapp/sdk-swift)
+[SnapAuth Homepage](https://www.snapauth.app?utm_source=GitHub&utm_campaign=sdk&utm_content=sdk-swift)
+| [SnapAuth Docs](https://docs.snapauth.app)
+| [Dashboard](https://dashboard.snapauth.app)
+| [Github](https://github.com/snapauthapp/sdk-swift)
 
+[![GitHub Release](https://img.shields.io/github/v/release/snapauthapp/sdk-swift)](https://github.com/snapauthapp/sdk-swift/releases)
 [![Test](https://github.com/snapauthapp/sdk-swift/actions/workflows/test.yml/badge.svg)](https://github.com/snapauthapp/sdk-swift/actions/workflows/test.yml)
 [![GitHub License](https://img.shields.io/github/license/snapauthapp/sdk-typescript)](https://github.com/snapauthapp/sdk-swift/blob/main/LICENSE)
 
-- [SnapAuth Homepage](https://www.snapauth.app?utm_source=GitHub&utm_campaign=sdk&utm_content=sdk-swift)
-- [Docs](https://docs.snapauth.app)
-- [Dashboard](https://dashboard.snapauth.app)
-- [Github](https://github.com/snapauthapp/sdk-swift)
+![Swift Versions](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fsnapauthapp%2Fsdk-swift%2Fbadge%3Ftype%3Dswift-versions)
+![Supported Platforms](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fsnapauthapp%2Fsdk-swift%2Fbadge%3Ftype%3Dplatforms)
+
+[Swift Package Index](https://swiftpackageindex.com/snapauthapp/sdk-swift)
+| [SPI docs](https://swiftpackageindex.com/snapauthapp/sdk-swift/main/documentation/snapauth)
 
 ## Platform Support
 

@@ -114,12 +114,13 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         name: String,
         anchor: ASPresentationAnchor,
         displayName: String? = nil,
-        authenticators: Set<Authenticator> = Authenticator.all
+        authenticators: Set<Authenticator> = Authenticator.all,
+        upgrade: Bool
     ) async -> SnapAuthResult {
         reset()
         self.anchor = anchor
 
-        let body = SACreateRegisterOptionsRequest(user: nil)
+        let body = SACreateRegisterOptionsRequest(user: nil, upgrade: upgrade)
         let response = await api.makeRequest(
             path: "/attestation/options",
             body: body,

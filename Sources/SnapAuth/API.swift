@@ -94,7 +94,7 @@ enum Transport: String, Encodable {
 
 struct SACreateAuthOptionsResponse: Decodable {
     let publicKey: PublicKeyOptions
-    // mediation
+    let mediation: CredentialMediationRequirement
 
     struct PublicKeyOptions: Decodable {
 
@@ -131,4 +131,16 @@ struct SAProcessAuthRequest: Encodable {
 struct SAProcessAuthResponse: Decodable {
     let token: String
     let expiresAt: Date
+}
+
+/// https://www.w3.org/TR/credential-management-1/#mediation-requirements
+enum CredentialMediationRequirement: String, Decodable {
+    /// Default behavior: present requests in foreground if needed.
+    case optional = "optional"
+    /// Used to indicate operation should be done in the background.
+    case conditional = "conditional"
+    /// Fail if operation cannot be performed without user involvement. Unused; only present for future-proofing.
+    case silent = "silent"
+    /// Fail if operation cannot be performed with user involvement. Unused; only present for future-proofing.
+    case required = "required"
 }

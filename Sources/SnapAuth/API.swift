@@ -16,6 +16,7 @@ struct SAWrappedResponse<T>: Decodable where T: Decodable {
 
 struct SACreateRegisterOptionsRequest: Encodable {
     let user: AuthenticatingUser?
+    let upgrade: Bool
 }
 struct SACreateRegisterOptionsResponse: Decodable {
     let publicKey: PublicKeyOptions

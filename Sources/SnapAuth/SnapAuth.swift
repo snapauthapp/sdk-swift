@@ -106,7 +106,8 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
             name: name,
             anchor: .default,
             displayName: displayName,
-            authenticators: authenticators)
+            authenticators: authenticators,
+            upgrade: false)
     }
 
     // TODO: Only make this public if needed?

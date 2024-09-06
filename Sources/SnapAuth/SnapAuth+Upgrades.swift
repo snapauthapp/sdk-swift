@@ -17,7 +17,7 @@ extension SnapAuth {
             name: username,
             anchor: .default,
             displayName: displayName,
-            authenticators: Authenticator.all,
+            authenticators: [.passkey],
             upgrade: true
         )
     }

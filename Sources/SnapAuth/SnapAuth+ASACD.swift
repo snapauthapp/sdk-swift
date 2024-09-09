@@ -4,6 +4,8 @@ import AuthenticationServices
 @available(macOS 12.0, iOS 15.0, visionOS 1.0, tvOS 16.0, *)
 extension SnapAuth: ASAuthorizationControllerDelegate {
 
+    /// Delegate method for ASAuthorizationController.
+    /// This should not be called directly.
     nonisolated public func authorizationController(
         controller: ASAuthorizationController,
         didCompleteWithError error: Error
@@ -22,6 +24,8 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         }
     }
 
+    /// Delegate method for ASAuthorizationController.
+    /// This should not be called directly.
     nonisolated public func authorizationController(
         controller: ASAuthorizationController,
         didCompleteWithAuthorization authorization: ASAuthorization
@@ -41,7 +45,6 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
         }
     }
 
-    /// Sends the error to the appropriate delegate method and resets the internal state back to idle
     private func sendError(_ error: SnapAuthError) {
         continuation?.resume(returning: .failure(error))
         continuation = nil
@@ -50,7 +53,6 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
     private func handleRegistration(
         _ registration: ASAuthorizationPublicKeyCredentialRegistration
     ) {
-        // Decode, send to SA, hand back resposne via delegate method
         logger.info("got a registration response")
 
         let credentialId = Base64URL(from: registration.credentialID)
@@ -88,7 +90,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
                 body: body,
                 type: SAProcessAuthResponse.self) // TODO: rename this type
             guard case let .success(processAuth) = response else {
-                logger.debug("/registration/process error")
+                logger.debug("/attestation/process error")
                 sendError(response.getError()!)
                 return
             }
@@ -136,7 +138,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
                 body: body,
                 type: SAProcessAuthResponse.self)
             guard case let .success(authResponse) = response else {
-                logger.debug("/auth/process error")
+                logger.debug("/assertion/process error")
                 sendError(response.getError()!)
                 return
             }

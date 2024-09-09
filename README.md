@@ -3,15 +3,22 @@
 This is the official Swift SDK for [SnapAuth](https://www.snapauth.app?utm_source=GitHub&utm_campaign=sdk&utm_content=sdk-swift).
 
 SnapAuth will let you add passkey support to your native app in a snap!
+Add strong multi-factor authentication or go fully passwordless while maintaining a great, frictionless user experience.
 
-🚧 This SDK is in beta! 🚧
+[SnapAuth Homepage](https://www.snapauth.app?utm_source=GitHub&utm_campaign=sdk&utm_content=sdk-swift)
+| [SnapAuth Docs](https://docs.snapauth.app)
+| [Dashboard](https://dashboard.snapauth.app)
+| [Github](https://github.com/snapauthapp/sdk-swift)
 
-![GitHub License](https://img.shields.io/github/license/snapauthapp/sdk-typescript)
+[![GitHub Release](https://img.shields.io/github/v/release/snapauthapp/sdk-swift)](https://github.com/snapauthapp/sdk-swift/releases)
+[![Test](https://github.com/snapauthapp/sdk-swift/actions/workflows/test.yml/badge.svg)](https://github.com/snapauthapp/sdk-swift/actions/workflows/test.yml)
+[![GitHub License](https://img.shields.io/github/license/snapauthapp/sdk-typescript)](https://github.com/snapauthapp/sdk-swift/blob/main/LICENSE)
 
-- [SnapAuth Homepage](https://www.snapauth.app?utm_source=GitHub&utm_campaign=sdk&utm_content=sdk-swift)
-- [Docs](https://docs.snapauth.app)
-- [Dashboard](https://dashboard.snapauth.app)
-- [Github](https://github.com/snapauthapp/sdk-swift)
+![Swift Versions](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fsnapauthapp%2Fsdk-swift%2Fbadge%3Ftype%3Dswift-versions)
+![Supported Platforms](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fsnapauthapp%2Fsdk-swift%2Fbadge%3Ftype%3Dplatforms)
+
+[Swift Package Index](https://swiftpackageindex.com/snapauthapp/sdk-swift)
+| [SPI docs](https://swiftpackageindex.com/snapauthapp/sdk-swift/main/documentation/snapauth)
 
 ## Platform Support
 
@@ -25,7 +32,9 @@ macOS | ✅ 12.0+ | ✅ 12.0+ |
 macOS (Catalyst) | ⚠️ | ⚠️ | Still being tested (should work)
 visionOS | ✅ 1.0+ | ❌ | Hardware keys are not supported on visionOS
 tvOS | ⚠️ 16.0+ | ❌ | Still being tested, hardware keys are not supported on tvOS
-watchOS | ❌ | ❌ | Apple Watch does not support passkeys
+
+Apple Watch does not support passkeys or hardware keys, so watchOS is not supported by this SDK.
+If support is added in a future watchOS release, we will do the same!
 
 ## Getting Started
 

@@ -5,10 +5,11 @@ struct SAAvailability {
     /// platform/device.
     static var autofill: Bool {
 #if (os(iOS) || os(visionOS))
-        return #available(iOS 16, visionOS 1, *)
-#else
-        return false
+        if #available(iOS 16, visionOS 1, *) {
+            return true
+        }
 #endif
+        return false
     }
 
     /// Indicates whether external security keys are supported on the current
@@ -25,9 +26,10 @@ struct SAAvailability {
     /// current platform/device.
     static var passkeyUpgrades: Bool {
 #if (os(iOS) || os(macOS) || os(visionOS))
-        return #available(iOS 18, macOS 15, visionOS 2, *)
-#else
-        return false
+        if #available(iOS 18, macOS 15, visionOS 2, *) {
+            return true
+        }
 #endif
+        return false
     }
 }

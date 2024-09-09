@@ -12,8 +12,11 @@ extension SnapAuth {
         username: String,
         displayName: String? = nil
     ) async -> SnapAuthResult {
+        if !SAAvailability.passkeyUpgrades {
+            return .failure(.unsupportedOnPlatform)
+        }
 
-        await startRegister(
+        return await startRegister(
             name: username,
             anchor: .default,
             displayName: displayName,

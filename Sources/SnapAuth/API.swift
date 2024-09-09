@@ -1,4 +1,5 @@
 import Foundation
+import AuthenticationServices
 
 /// Wrapper that matches the API wire format
 ///
@@ -20,6 +21,7 @@ struct SACreateRegisterOptionsRequest: Encodable {
 }
 struct SACreateRegisterOptionsResponse: Decodable {
     let publicKey: PublicKeyOptions
+    let mediation: CredentialMediationRequirement
 
     struct PublicKeyOptions: Decodable {
         let rp: RPInfo
@@ -143,4 +145,12 @@ enum CredentialMediationRequirement: String, Decodable {
     case silent = "silent"
     /// Fail if operation cannot be performed with user involvement. Unused; only present for future-proofing.
     case required = "required"
+
+    @available(iOS 18, visionOS 2.0, macOS 15.0, *)
+    var requestStyle: ASAuthorizationPlatformPublicKeyCredentialRegistrationRequest.RequestStyle {
+        if (self == .conditional) {
+            return .conditional
+        }
+        return .standard
+    }
 }

@@ -14,12 +14,30 @@ extension SnapAuth {
         if authenticators.contains(.passkey) {
             let provider = ASAuthorizationPlatformPublicKeyCredentialProvider(
                 relyingPartyIdentifier: options.publicKey.rp.id)
-            let request = provider.createCredentialRegistrationRequest(
-                challenge: challenge,
-                name: name,
-                userID: options.publicKey.user.id.data)
 
-            requests.append(request)
+            // This is a little clumsy: the conditional request API wasn't added
+            // to tvOS at all, and a simple if #available can't block an entire
+            // platform.
+            var request: ASAuthorizationPlatformPublicKeyCredentialRegistrationRequest? = nil
+            #if (os(iOS) || os(macOS) || os(visionOS))
+            if #available(iOS 18, macOS 15, visionOS 2, *) {
+                request = provider.createCredentialRegistrationRequest(
+                    challenge: challenge,
+                    name: name,
+                    userID: options.publicKey.user.id.data,
+                    requestStyle: options.mediation.requestStyle)
+            }
+            // TODO: if conditional and unsupported platform, short-circuit to ensure there's no false-positive modals
+            #endif
+            if request == nil {
+                // tvOS and previous other platforms
+                request = provider.createCredentialRegistrationRequest(
+                    challenge: challenge,
+                    name: name,
+                    userID: options.publicKey.user.id.data)
+            }
+
+            requests.append(request!)
         }
 
 #if HARDWARE_KEY_SUPPORT

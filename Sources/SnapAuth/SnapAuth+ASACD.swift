@@ -87,7 +87,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
                 body: body,
                 type: SAProcessAuthResponse.self) // TODO: rename this type
             guard case let .success(processAuth) = response else {
-                logger.debug("/registration/process error")
+                logger.debug("/attestation/process error")
                 sendError(response.getError()!)
                 return
             }
@@ -135,7 +135,7 @@ extension SnapAuth: ASAuthorizationControllerDelegate {
                 body: body,
                 type: SAProcessAuthResponse.self)
             guard case let .success(authResponse) = response else {
-                logger.debug("/auth/process error")
+                logger.debug("/assertion/process error")
                 sendError(response.getError()!)
                 return
             }

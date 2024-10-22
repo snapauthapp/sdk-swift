@@ -98,12 +98,12 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     /// }
     /// ```
     public func startRegister(
-        name: String,
+        username: String,
         displayName: String? = nil,
         authenticators: Set<Authenticator> = Authenticator.all
     ) async -> SnapAuthResult {
         await startRegister(
-            name: name,
+            username: username,
             anchor: .default,
             displayName: displayName,
             authenticators: authenticators)
@@ -111,7 +111,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 
     // TODO: Only make this public if needed?
     internal func startRegister(
-        name: String,
+        username: String,
         anchor: ASPresentationAnchor,
         displayName: String? = nil,
         authenticators: Set<Authenticator> = Authenticator.all
@@ -131,7 +131,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 
         let authRequests = buildRegisterRequests(
             from: options,
-            name: name,
+            username: username,
             displayName: displayName,
             authenticators: authenticators)
 

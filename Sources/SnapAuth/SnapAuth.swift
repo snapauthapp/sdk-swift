@@ -106,7 +106,8 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
             username: username,
             anchor: .default,
             displayName: displayName,
-            authenticators: authenticators)
+            authenticators: authenticators,
+            upgrade: false)
     }
 
     // TODO: Only make this public if needed?
@@ -114,12 +115,13 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
         username: String,
         anchor: ASPresentationAnchor,
         displayName: String? = nil,
-        authenticators: Set<Authenticator> = Authenticator.all
+        authenticators: Set<Authenticator> = Authenticator.all,
+        upgrade: Bool
     ) async -> SnapAuthResult {
         reset()
         self.anchor = anchor
 
-        let body = SACreateRegisterOptionsRequest(user: nil)
+        let body = SACreateRegisterOptionsRequest(user: nil, upgrade: upgrade)
         let response = await api.makeRequest(
             path: "/attestation/options",
             body: body,

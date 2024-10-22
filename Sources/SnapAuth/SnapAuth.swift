@@ -77,7 +77,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     /// if the request cannot be fulfilled.
     ///
     /// - Parameters:
-    ///   - name: The name of the user. This should be a username or handle.
+    ///   - username: What the user will use to sign in (often an email address)
     ///   - displayName: The proper name of the user. If omitted, name will be used.
     ///   - authenticators: What authenticators should be permitted. If omitted,
     ///     all available types for the platform will be allowed.
@@ -98,12 +98,12 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     /// }
     /// ```
     public func startRegister(
-        name: String,
+        username: String,
         displayName: String? = nil,
         authenticators: Set<Authenticator> = Authenticator.all
     ) async -> SnapAuthResult {
         await startRegister(
-            name: name,
+            username: username,
             anchor: .default,
             displayName: displayName,
             authenticators: authenticators)
@@ -111,7 +111,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 
     // TODO: Only make this public if needed?
     internal func startRegister(
-        name: String,
+        username: String,
         anchor: ASPresentationAnchor,
         displayName: String? = nil,
         authenticators: Set<Authenticator> = Authenticator.all
@@ -131,7 +131,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 
         let authRequests = buildRegisterRequests(
             from: options,
-            name: name,
+            username: username,
             displayName: displayName,
             authenticators: authenticators)
 
@@ -158,7 +158,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     /// if the request cannot be fulfilled.
     ///
     /// - Parameters:
-    ///   - user: The authenticating user's `id` or `handle`
+    ///   - user: The authenticating user's `id` or `username`
     ///   - authenticators: What authenticators should be permitted. If omitted,
     ///     all available types for the platform will be allowed.
     ///
@@ -169,7 +169,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     /// # Example
     /// ```swift
     /// Task {
-    ///     let result = await snapAuth.startAuth(.handle("username@example.com"))
+    ///     let result = await snapAuth.startAuth(.username("username@example.com"))
     ///     switch result {
     ///     case .success(let auth):
     ///         // send auth.token to your backend to verify
@@ -234,15 +234,15 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 public enum AuthenticatingUser {
     /// Your application's internal identifier for the user (usually a primary key)
     case id(String)
-    /// The user's handle, such as a username or email address
-    case handle(String)
+    /// The user's sign-in handle, such as a username or email address
+    case username(String)
 }
 
-/// Encode as JSON to either `{"id": id}` or `{"handle": handle}`, which is what the SnapAuth APIs need
+/// Encode as JSON to either `{"id": id}` or `{"username": username}`, which is what the SnapAuth APIs need
 extension AuthenticatingUser: Encodable {
     enum CodingKeys: String, CodingKey {
          case id
-         case handle
+         case username
      }
 
      public func encode(to encoder: Encoder) throws {
@@ -251,8 +251,8 @@ extension AuthenticatingUser: Encodable {
          switch self {
          case .id(let value):
              try container.encode(value, forKey: .id)
-         case .handle(let value):
-             try container.encode(value, forKey: .handle)
+         case .username(let value):
+             try container.encode(value, forKey: .username)
          }
      }
 }

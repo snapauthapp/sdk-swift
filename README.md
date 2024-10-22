@@ -105,7 +105,7 @@ struct SignInView: View {
 
   func signIn() {
     Task {
-      let result = await snapAuth.startAuth(.handle(userName))
+      let result = await snapAuth.startAuth(.username(userName))
       switch result {
       case .success(let auth):
         // Send auth.token to your backend to sign in the user

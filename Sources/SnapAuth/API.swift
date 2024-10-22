@@ -45,6 +45,7 @@ struct SACreateRegisterOptionsResponse: Decodable {
 struct SAProcessRegisterRequest: Encodable {
     let credential: RegCredential
 
+    // See WebAuthn RegistrationResponseJSON format
     struct RegCredential: Encodable {
         let type: String = "public-key"
         let rawId: Base64URL
@@ -116,6 +117,7 @@ struct SAProcessAuthRequest: Encodable {
     // user ~ id/handle (skip for now since this is passkey only flow...ish)
     let credential: SACredential
     let user: AuthenticatingUser?
+    // See WebAuthn AuthenticationResponseJSON format
     struct SACredential: Codable {
         let type: String = "public-key"
         let rawId: Base64URL

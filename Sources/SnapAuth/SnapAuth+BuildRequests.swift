@@ -4,7 +4,7 @@ import AuthenticationServices
 extension SnapAuth {
     internal func buildRegisterRequests(
         from options: SACreateRegisterOptionsResponse,
-        name: String,
+        username: String,
         displayName: String?,
         authenticators: Set<SnapAuth.Authenticator>
     ) -> [ASAuthorizationRequest] {
@@ -23,7 +23,7 @@ extension SnapAuth {
             if #available(iOS 18, macOS 15, visionOS 2, *) {
                 request = provider.createCredentialRegistrationRequest(
                     challenge: challenge,
-                    name: name,
+                    name: username,
                     userID: options.publicKey.user.id.data,
                     requestStyle: options.mediation.requestStyle)
             }
@@ -33,7 +33,7 @@ extension SnapAuth {
                 // tvOS and previous other platforms
                 request = provider.createCredentialRegistrationRequest(
                     challenge: challenge,
-                    name: name,
+                    name: username,
                     userID: options.publicKey.user.id.data)
             }
 
@@ -46,8 +46,8 @@ extension SnapAuth {
                 relyingPartyIdentifier: options.publicKey.rp.id)
             let request = provider.createCredentialRegistrationRequest(
                 challenge: challenge,
-                displayName: name,
-                name: name,
+                displayName: displayName ?? username,
+                name: username,
                 userID: options.publicKey.user.id.data)
             request.attestationPreference = .direct // TODO: use API response
             request.credentialParameters = [.init(algorithm: .ES256)] // TODO: use API response

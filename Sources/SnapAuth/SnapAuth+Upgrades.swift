@@ -6,7 +6,7 @@ extension SnapAuth {
     /// displayed to the user, though may be logged.
     ///
     /// - Parameters:
-    ///   - name: The name of the user. This should be a username or handle.
+    ///   - username: The username of the user, such as an email address or handle
     ///   - displayName: The proper name of the user. If omitted, name will be used.
     public func upgradeToPasskey(
         username: String,
@@ -17,7 +17,7 @@ extension SnapAuth {
         }
 
         return await startRegister(
-            name: username,
+            username: username,
             anchor: .default,
             displayName: displayName,
             authenticators: [.passkey],

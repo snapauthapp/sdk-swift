@@ -7,6 +7,7 @@ import os
 /// This is used to start the passkey registration and authentication processes,
 /// typically in the `action` of a `Button`
 @available(macOS 12.0, iOS 15.0, tvOS 16.0, *)
+@MainActor
 public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDelegate
 
     internal let api: SnapAuthClient
@@ -40,7 +41,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
     }
 
     /// Permitted authenticator types
-    public enum Authenticator: CaseIterable {
+    public enum Authenticator: CaseIterable, Sendable {
         /// Allow all available authenticator types to be used
         public static let all = Set(Authenticator.allCases)
 
@@ -231,7 +232,7 @@ public class SnapAuth: NSObject { // NSObject for ASAuthorizationControllerDeleg
 }
 
 /// A representation of the user that is trying to authenticate.
-public enum AuthenticatingUser {
+public enum AuthenticatingUser: Sendable {
     /// Your application's internal identifier for the user (usually a primary key)
     case id(String)
     /// The user's sign-in handle, such as a username or email address
